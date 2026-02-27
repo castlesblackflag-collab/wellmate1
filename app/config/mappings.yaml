@@ -1,0 +1,199 @@
+# Mapping layer: symptoms/outcomes/issues -> specialties, modalities, and search queries.
+# Used by query_builder and scoring to translate user language into provider-matching signals.
+# Versioned in repo. Extend by adding entries; no code changes needed.
+
+# -----------------------------------------------------------------------
+# outcome_to_modalities
+# Maps user-stated goal outcomes (keywords) to relevant provider modalities
+# and specialties. Matching is case-insensitive substring.
+# -----------------------------------------------------------------------
+outcome_to_modalities:
+  pain:
+    medical: ["Pain Medicine", "Physical Medicine & Rehab", "Orthopedics"]
+    whole_health: ["acupuncture", "massage", "chiropractic", "physical_therapy", "yoga"]
+  mobility:
+    medical: ["Physical Medicine & Rehab", "Orthopedics", "Sports Medicine"]
+    whole_health: ["physical_therapy", "yoga", "chiropractic"]
+  stress:
+    medical: ["Psychiatry", "Psychology", "Family Medicine"]
+    whole_health: ["meditation", "yoga", "counseling", "massage", "acupuncture"]
+  anxiety:
+    medical: ["Psychiatry", "Psychology"]
+    whole_health: ["counseling", "meditation", "yoga"]
+  depression:
+    medical: ["Psychiatry", "Psychology"]
+    whole_health: ["counseling", "meditation", "yoga"]
+  sleep:
+    medical: ["Sleep Medicine", "Psychiatry", "Neurology"]
+    whole_health: ["meditation", "acupuncture", "yoga", "counseling"]
+  weight:
+    medical: ["Endocrinology", "Bariatric Medicine", "Family Medicine"]
+    whole_health: ["nutrition", "yoga", "counseling"]
+  nutrition:
+    medical: ["Endocrinology", "Internal Medicine", "Family Medicine"]
+    whole_health: ["nutrition", "yoga"]
+  energy:
+    medical: ["Endocrinology", "Internal Medicine", "Family Medicine"]
+    whole_health: ["nutrition", "yoga", "acupuncture"]
+  flexibility:
+    medical: ["Physical Medicine & Rehab", "Sports Medicine"]
+    whole_health: ["yoga", "physical_therapy", "chiropractic"]
+  strength:
+    medical: ["Sports Medicine", "Physical Medicine & Rehab"]
+    whole_health: ["physical_therapy", "yoga"]
+  balance:
+    medical: ["Neurology", "Physical Medicine & Rehab"]
+    whole_health: ["yoga", "physical_therapy"]
+  headache:
+    medical: ["Neurology", "Pain Medicine", "Family Medicine"]
+    whole_health: ["acupuncture", "massage", "meditation"]
+  medication:
+    medical: ["Psychiatry", "Internal Medicine", "Family Medicine"]
+    whole_health: []
+  fertility:
+    medical: ["Reproductive Endocrinology", "OB/GYN"]
+    whole_health: ["acupuncture", "nutrition", "yoga"]
+  heart:
+    medical: ["Cardiology", "Internal Medicine"]
+    whole_health: ["yoga", "meditation", "nutrition"]
+  breathing:
+    medical: ["Pulmonology", "Allergy & Immunology"]
+    whole_health: ["yoga", "meditation", "acupuncture"]
+  digestion:
+    medical: ["Gastroenterology", "Internal Medicine"]
+    whole_health: ["nutrition", "acupuncture", "yoga"]
+  skin:
+    medical: ["Dermatology"]
+    whole_health: ["nutrition", "acupuncture"]
+  aging:
+    medical: ["Geriatrics", "Internal Medicine", "Endocrinology"]
+    whole_health: ["yoga", "nutrition", "meditation"]
+  focus:
+    medical: ["Psychiatry", "Neurology"]
+    whole_health: ["meditation", "counseling", "yoga"]
+  trauma:
+    medical: ["Psychiatry", "Psychology"]
+    whole_health: ["counseling", "meditation", "yoga"]
+  recovery:
+    medical: ["Physical Medicine & Rehab", "Sports Medicine", "Addiction Medicine"]
+    whole_health: ["physical_therapy", "yoga", "counseling", "acupuncture"]
+  posture:
+    medical: ["Physical Medicine & Rehab", "Orthopedics"]
+    whole_health: ["chiropractic", "yoga", "physical_therapy"]
+
+# -----------------------------------------------------------------------
+# symptom_to_specialties
+# Maps common symptom/issue keywords to medical specialties.
+# Used when main_issue is provided.
+# -----------------------------------------------------------------------
+symptom_to_specialties:
+  back pain: ["Orthopedics", "Pain Medicine", "Physical Medicine & Rehab"]
+  knee pain: ["Orthopedics", "Sports Medicine"]
+  shoulder pain: ["Orthopedics", "Sports Medicine"]
+  neck pain: ["Orthopedics", "Pain Medicine", "Physical Medicine & Rehab"]
+  joint pain: ["Rheumatology", "Orthopedics"]
+  migraine: ["Neurology", "Pain Medicine"]
+  headache: ["Neurology", "Pain Medicine", "Family Medicine"]
+  insomnia: ["Sleep Medicine", "Psychiatry"]
+  fatigue: ["Endocrinology", "Internal Medicine"]
+  diabetes: ["Endocrinology", "Internal Medicine"]
+  high blood pressure: ["Cardiology", "Internal Medicine"]
+  hypertension: ["Cardiology", "Internal Medicine"]
+  chest pain: ["Cardiology", "Internal Medicine"]
+  asthma: ["Pulmonology", "Allergy & Immunology"]
+  allergies: ["Allergy & Immunology"]
+  acid reflux: ["Gastroenterology"]
+  ibs: ["Gastroenterology"]
+  acne: ["Dermatology"]
+  eczema: ["Dermatology"]
+  adhd: ["Psychiatry", "Neurology"]
+  ptsd: ["Psychiatry", "Psychology"]
+
+# -----------------------------------------------------------------------
+# preference_signals
+# Maps user preference/avoidance keywords to scoring signals.
+# boost: added to preference_alignment sub-score when provider matches.
+# penalty: subtracted from avoidance sub-score when provider matches.
+# -----------------------------------------------------------------------
+preference_signals:
+  non-pharmacologic:
+    boosts: ["acupuncture", "yoga", "massage", "chiropractic", "meditation", "physical_therapy", "nutrition", "counseling"]
+    penalizes: []
+  mind-body:
+    boosts: ["yoga", "meditation", "counseling"]
+    penalizes: []
+  holistic:
+    boosts: ["acupuncture", "yoga", "massage", "meditation", "nutrition", "chiropractic"]
+    penalizes: []
+  female-provider:
+    boosts: []
+    penalizes: []
+  evidence-based:
+    boosts: ["physician", "clinic", "physical_therapy"]
+    penalizes: []
+  natural:
+    boosts: ["acupuncture", "nutrition", "yoga", "meditation"]
+    penalizes: []
+
+avoidance_signals:
+  opioids:
+    penalizes: []
+    note: "Informational; backend cannot verify prescribing patterns"
+  surgery:
+    penalizes: []
+    note: "Informational; used in fit_reason generation"
+  medication:
+    penalizes: []
+    note: "Boosts whole_health providers when present"
+
+# -----------------------------------------------------------------------
+# category_to_places_queries
+# Maps provider categories to Google Places text search queries.
+# -----------------------------------------------------------------------
+category_to_places_queries:
+  medical:
+    - "doctor"
+    - "medical clinic"
+    - "physician"
+  acupuncture:
+    - "acupuncturist"
+    - "acupuncture clinic"
+  yoga:
+    - "yoga therapy"
+    - "yoga studio"
+  meditation:
+    - "meditation center"
+    - "mindfulness center"
+  massage:
+    - "licensed massage therapist"
+    - "massage therapy"
+  nutrition:
+    - "registered dietitian"
+    - "nutritionist"
+  counseling:
+    - "licensed counselor"
+    - "therapist mental health"
+  chiropractic:
+    - "chiropractor"
+    - "chiropractic clinic"
+  physical_therapy:
+    - "physical therapist"
+    - "physical therapy clinic"
+
+# -----------------------------------------------------------------------
+# urgent_symptoms
+# Patterns that should generate a safety warning in the response.
+# The Playbook is responsible for escalation; backend just flags.
+# -----------------------------------------------------------------------
+urgent_symptoms:
+  - "chest pain"
+  - "difficulty breathing"
+  - "suicidal"
+  - "self-harm"
+  - "overdose"
+  - "stroke"
+  - "seizure"
+  - "severe bleeding"
+  - "loss of consciousness"
+  - "anaphylaxis"
+  - "allergic reaction severe"

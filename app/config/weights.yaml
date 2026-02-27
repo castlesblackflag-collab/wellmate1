@@ -1,0 +1,19 @@
+# Scoring weight configuration for practitioner ranking.
+# All weights should sum to 1.0.
+# Adjust these to change ranking behavior without code changes.
+
+scoring_weights:
+  outcome_alignment: 0.30
+  symptom_alignment: 0.15
+  care_style_alignment: 0.15
+  preference_alignment: 0.15
+  review_quality: 0.10
+  accessibility: 0.15
+
+# Thresholds and knobs
+npi_match_threshold: 0.75
+max_place_detail_calls: 10
+max_search_queries: 4
+geocode_cache_ttl_seconds: 86400
+places_cache_ttl_seconds: 3600
+upstream_timeout_seconds: 8

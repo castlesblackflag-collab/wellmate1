@@ -1,0 +1,24 @@
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'wellmate-practitioner-finder'
+      - '--source=.'
+      - '--region=${_REGION}'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=GOOGLE_PLACES_API_KEY=${_PLACES_API_KEY}'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--timeout=30'
+      - '--concurrency=80'
+      - '--min-instances=0'
+      - '--max-instances=10'
+
+substitutions:
+  _REGION: us-central1
+  _PLACES_API_KEY: ''
+
+options:
+  logging: CLOUD_LOGGING_ONLY

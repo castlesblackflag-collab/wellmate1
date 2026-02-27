@@ -1,0 +1,231 @@
+openapi: 3.0.3
+info:
+  title: Wellmate Practitioner Finder
+  description: >
+    Search and rank healthcare practitioners based on user goals, care style
+    preferences, and location. Designed for Google Conversational Agent /
+    Playbook tool integration. Returns real providers with structured fit
+    reasons. Never fabricates provider information.
+  version: 0.1.0
+
+servers:
+  - url: https://wellmate-practitioner-finder-XXXXX.a.run.app
+    description: Cloud Run production (replace XXXXX with actual project hash)
+
+paths:
+  /search_practitioners:
+    post:
+      operationId: search_practitioners
+      summary: Search and rank practitioners by user goals and preferences
+      description: >
+        Primary tool endpoint. Accepts user goals, care style, and location.
+        Returns ranked providers with deterministic fit reasons tied to user
+        inputs. Always returns the same response shape, even on error or
+        empty results.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Search results (always same shape)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+
+components:
+  schemas:
+    SearchRequest:
+      type: object
+      required:
+        - location_text
+        - care_style
+        - goal_outcomes
+      properties:
+        location_text:
+          type: string
+          description: "ZIP code or city name, e.g. '78701' or 'Austin, TX'"
+        care_style:
+          type: string
+          enum:
+            - medical
+            - whole_health
+            - mixed
+          description: "Type of care sought"
+        goal_outcomes:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 5
+          description: "1-5 short outcome strings the user wants to achieve"
+        main_issue:
+          type: string
+          description: "Primary symptom or issue, e.g. 'chronic lower back pain'"
+        diagnoses:
+          type: array
+          items:
+            type: string
+          default: []
+          description: "Known diagnoses"
+        preferences:
+          type: array
+          items:
+            type: string
+          default: []
+          description: "Care preferences, e.g. ['non-pharmacologic', 'mind-body']"
+        avoidances:
+          type: array
+          items:
+            type: string
+          default: []
+          description: "Things to avoid, e.g. ['opioids', 'surgery']"
+        visit_mode:
+          type: string
+          enum:
+            - in_person
+            - telehealth
+            - either
+          default: either
+          description: "Preferred visit modality"
+        insurance_hint:
+          type: string
+          description: "Insurance carrier hint (informational only)"
+        radius_km:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+          description: "Search radius in kilometers"
+        max_results:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 20
+          description: "Maximum number of results to return"
+
+    SearchResponse:
+      type: object
+      required:
+        - results
+        - meta
+        - warnings
+        - error
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderResult'
+          description: "Ranked list of matching providers (may be empty)"
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+        warnings:
+          type: array
+          items:
+            type: string
+          description: "Non-fatal warnings (e.g., degraded data, safety alerts)"
+        error:
+          type: string
+          nullable: true
+          description: "Error message if search failed, otherwise null"
+
+    ProviderResult:
+      type: object
+      properties:
+        provider_id:
+          type: string
+          description: "Stable identifier (place_id or internal hash)"
+        name:
+          type: string
+        provider_category:
+          type: string
+          enum:
+            - physician
+            - clinic
+            - acupuncture
+            - yoga
+            - meditation
+            - massage
+            - nutrition
+            - counseling
+            - chiropractic
+            - physical_therapy
+            - other
+        is_physician:
+          type: boolean
+        npi_verified:
+          type: boolean
+        credentials:
+          type: array
+          items:
+            type: string
+        specialties:
+          type: array
+          items:
+            type: string
+        address:
+          type: string
+          nullable: true
+        distance_km:
+          type: number
+          nullable: true
+        rating:
+          type: number
+          nullable: true
+        review_count:
+          type: integer
+          nullable: true
+        visit_modes:
+          type: array
+          items:
+            type: string
+        contact:
+          type: object
+          properties:
+            phone:
+              type: string
+              nullable: true
+            website:
+              type: string
+              nullable: true
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: "Composite fit score 0-100"
+        fit_reasons:
+          type: array
+          items:
+            type: string
+          description: "2-5 short reason strings tied to user goals"
+        data_sources:
+          type: array
+          items:
+            type: string
+          description: "Sources used for this result (e.g., google_places, npi_registry)"
+
+    ResponseMeta:
+      type: object
+      properties:
+        location_resolved:
+          type: string
+          nullable: true
+        lat:
+          type: number
+          nullable: true
+        lng:
+          type: number
+          nullable: true
+        radius_km:
+          type: integer
+        result_count:
+          type: integer
+        care_style:
+          type: string
+        goal_outcomes:
+          type: array
+          items:
+            type: string
