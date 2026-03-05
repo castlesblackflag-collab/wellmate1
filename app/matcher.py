@@ -1,7 +1,7 @@
 """Place-to-NPI fuzzy matching logic.
 
 Strategy decision (addressing open question #4 - NPI matching reliability):
-- Use thefuzz (fuzzywuzzy) for string similarity on names and addresses.
+- Use rapidfuzz for string similarity on names and addresses.
 - Match threshold is configurable (default 0.75 from weights.yaml).
 - We match on: normalized name similarity + city/state agreement.
 - For organizations/clinics, match on organization_name.
@@ -18,7 +18,7 @@ from typing import Any
 
 import structlog
 from httpx import AsyncClient
-from thefuzz import fuzz
+from rapidfuzz import fuzz
 
 from app.config_loader import cfg
 from app.npi_client import search_npi
