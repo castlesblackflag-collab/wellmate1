@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Wellmate - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css" />
+  <script src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #FFFFFF;
+      --green-light: #C8E6C9;
+      --green-mid: #81C784;
+      --green-dark: #4CAF50;
+      --teal-light: #B2DFDB;
+      --teal-mid: #80CBC4;
+      --teal-dark: #26A69A;
+      --blue-gray: #B0BEC5;
+      --blue-gray-dark: #607D8B;
+      --blue-gray-deeper: #455A64;
+      --bg-main: #F5F7FA;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+      --radius: 16px;
+      --radius-sm: 12px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-main);
+      color: #333;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Top navigation bar ── */
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid #E0E0E0;
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--teal-dark), var(--green-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .topbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .topbar-link {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--blue-gray-dark);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .topbar-link:hover {
+      background: var(--teal-light);
+      color: var(--blue-gray-deeper);
+    }
+
+    .topbar-link.active {
+      background: var(--teal-dark);
+      color: var(--white);
+    }
+
+    /* ── Layout: sidebar + main ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* ── Left panel: dashboard content ── */
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Welcome banner */
+    .welcome-banner {
+      background: linear-gradient(135deg, #E8F5E9 0%, #E0F2F1 50%, #ECEFF1 100%);
+      border-radius: var(--radius);
+      padding: 2rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-banner::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(76,175,80,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .welcome-banner::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      right: 80px;
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, rgba(38,166,154,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .welcome-banner h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--blue-gray-deeper);
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome-banner p {
+      color: var(--blue-gray-dark);
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 600px;
+    }
+
+    /* ── Feature cards grid ── */
+    .features-heading {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--blue-gray-deeper);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .feature-card {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid #E8E8E8;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--teal-dark), var(--green-dark));
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--teal-light);
+    }
+
+    .feature-card:hover::after {
+      transform: scaleX(1);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .feature-icon.green  { background: #E8F5E9; }
+    .feature-icon.teal   { background: #E0F2F1; }
+    .feature-icon.blue   { background: #ECEFF1; }
+    .feature-icon.purple { background: #EDE7F6; }
+
+    .feature-card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--blue-gray-deeper);
+    }
+
+    .feature-card p {
+      font-size: 0.82rem;
+      color: var(--blue-gray-dark);
+      line-height: 1.5;
+    }
+
+    .feature-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      width: fit-content;
+    }
+
+    .badge-live     { background: #E8F5E9; color: #2E7D32; }
+    .badge-new      { background: #E0F2F1; color: #00796B; }
+    .badge-soon     { background: #ECEFF1; color: #546E7A; }
+
+    /* ── Quick stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid #E8E8E8;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--teal-dark), var(--green-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--blue-gray-dark);
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+
+    /* ── Right panel: chat ── */
+    .chat-panel {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      border: 1px solid #E0E0E0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: calc(100vh - 64px - 3rem);
+      position: sticky;
+      top: calc(64px + 1.5rem);
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, var(--teal-dark), var(--green-dark));
+      color: var(--white);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .chat-header-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .chat-header-info h2 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .chat-header-info span {
+      font-size: 0.75rem;
+      opacity: 0.85;
+    }
+
+    .chat-header-status {
+      margin-left: auto;
+      width: 10px;
+      height: 10px;
+      background: #A5D6A7;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.5);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.2); }
+    }
+
+    .chat-body {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Hide the default df-messenger floating widget; embed inside our panel */
+    df-messenger {
+      z-index: 10;
+      position: absolute !important;
+      top: 0;
+      left: 0;
+      width: 100% !important;
+      height: 100% !important;
+      bottom: auto !important;
+      right: auto !important;
+      --df-messenger-font-color: #333;
+      --df-messenger-font-family: 'Inter', sans-serif;
+      --df-messenger-chat-background: #FAFAFA;
+      --df-messenger-message-user-background: #E7EFFE;
+      --df-messenger-message-bot-background: #C8E6C9;
+      --df-messenger-chat-border-radius: 0;
+      --df-messenger-chat-window-height: 100%;
+      --df-messenger-chat-window-width: 100%;
+      --df-messenger-titlebar-font-color: var(--white);
+      --df-messenger-send-icon-color: var(--teal-dark);
+    }
+
+    /* Hide the default chat bubble since we embed fully */
+    df-messenger-chat-bubble {
+      display: none;
+    }
+
+    /* Force the chat window open and fill container */
+    df-messenger::part(chat-wrapper) {
+      position: absolute;
+      inset: 0;
+      height: 100%;
+      width: 100%;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+      }
+
+      .chat-panel {
+        position: relative;
+        top: auto;
+        height: 500px;
+        order: -1;
+      }
+
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        padding: 0 1rem;
+      }
+
+      .topbar-nav {
+        display: none;
+      }
+    }
+
+    /* ── Scroll styling ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--blue-gray); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="https://storage.cloud.google.com/wmlogo/wellmate2.png"
+           alt="Wellmate Logo"
+           class="brand-logo"
+           onerror="this.style.display='none'" />
+      <span class="brand-name">The Wellmate</span>
+    </div>
+    <nav class="topbar-nav">
+      <a href="#" class="topbar-link active">Dashboard</a>
+      <a href="#features" class="topbar-link">Features</a>
+      <a href="https://exchange.iseesystems.com/public/ryancastle/timemine-longevity-optimizer"
+         target="_blank" rel="noopener" class="topbar-link">Longevity Optimizer</a>
+    </nav>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="layout">
+
+    <!-- Left: Dashboard Content -->
+    <main class="dashboard">
+
+      <!-- Welcome Banner -->
+      <section class="welcome-banner">
+        <h1>Welcome to The Wellmate</h1>
+        <p>Your personal wellness companion. Chat with Sage for personalized guidance,
+           explore our health tools, and take the next step toward a healthier you.</p>
+      </section>
+
+      <!-- Quick Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value">24/7</div>
+          <div class="stat-label">Sage Availability</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">50+</div>
+          <div class="stat-label">Specialties Covered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Private & Secure</div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <h2 class="features-heading" id="features">Explore Features</h2>
+      <div class="features-grid">
+
+        <!-- Longevity Optimizer -->
+        <a href="https://exchange.iseesystems.com/public/ryancastle/timemine-longevity-optimizer"
+           target="_blank" rel="noopener" class="feature-card">
+          <div class="feature-icon teal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#26A69A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <span class="feature-badge badge-live">Live</span>
+          <h3>Longevity Optimizer</h3>
+          <p>Model and maximize your healthspan with science-backed lifestyle simulations.</p>
+        </a>
+
+        <!-- Practitioner Finder -->
+        <a href="#" class="feature-card" onclick="return false;">
+          <div class="feature-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <span class="feature-badge badge-live">Live</span>
+          <h3>Practitioner Finder</h3>
+          <p>Find and compare verified practitioners matched to your health goals and care style.</p>
+        </a>
+
+        <!-- Wellness Tracker -->
+        <a href="#" class="feature-card" onclick="return false;">
+          <div class="feature-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#607D8B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <span class="feature-badge badge-soon">Coming Soon</span>
+          <h3>Wellness Tracker</h3>
+          <p>Track daily habits, sleep, nutrition, and movement with intelligent insights.</p>
+        </a>
+
+        <!-- Supplement Guide -->
+        <a href="#" class="feature-card" onclick="return false;">
+          <div class="feature-icon purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7E57C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span class="feature-badge badge-soon">Coming Soon</span>
+          <h3>Supplement Guide</h3>
+          <p>Evidence-based supplement recommendations personalized to your needs.</p>
+        </a>
+
+      </div>
+    </main>
+
+    <!-- Right: Chat Panel (always visible) -->
+    <aside class="chat-panel">
+      <div class="chat-header">
+        <div class="chat-header-avatar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446A9 9 0 1 1 12 3z"/></svg>
+        </div>
+        <div class="chat-header-info">
+          <h2>Sage</h2>
+          <span>Your Wellness Guide</span>
+        </div>
+        <div class="chat-header-status" title="Online"></div>
+      </div>
+      <div class="chat-body">
+        <df-messenger
+          location="us-central1"
+          project-id="wellmate-i"
+          agent-id="1dd0a30c-fe95-4ed1-8b4a-e977a75fa37f"
+          language-code="en"
+          max-query-length="-1"
+          allow-feedback="all">
+          <df-messenger-chat-bubble
+            chat-title="Sage with the Wellmate"
+            chat-title-icon="https://storage.cloud.google.com/wmlogo/wellmate2.png">
+          </df-messenger-chat-bubble>
+        </df-messenger>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    // Auto-expand the df-messenger chat when the component loads
+    document.addEventListener('df-messenger-loaded', function() {
+      const dfMessenger = document.querySelector('df-messenger');
+      if (dfMessenger) {
+        // Open the chat window programmatically
+        const chatBubble = dfMessenger.querySelector('df-messenger-chat-bubble');
+        if (chatBubble && chatBubble.openChat) {
+          chatBubble.openChat();
+        }
+        // Fallback: click the bubble to open
+        setTimeout(function() {
+          const bubble = dfMessenger.shadowRoot &&
+            dfMessenger.shadowRoot.querySelector('df-messenger-chat-bubble');
+          if (bubble && bubble.shadowRoot) {
+            const btn = bubble.shadowRoot.querySelector('button') ||
+                        bubble.shadowRoot.querySelector('[class*="bubble"]');
+            if (btn) btn.click();
+          }
+        }, 500);
+      }
+    });
+  </script>
+
+</body>
+</html>
