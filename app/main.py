@@ -28,9 +28,11 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 import structlog
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from httpx import AsyncClient
 
 from app.config_loader import cfg
@@ -147,7 +149,16 @@ def _error_response(error_msg: str, warnings: list[str] | None = None) -> Search
     )
 
 
+_STATIC_DIR = Path(__file__).parent / "static"
+
+
 @app.get("/")
+async def dashboard():
+    """Serve the dashboard page."""
+    return FileResponse(_STATIC_DIR / "dashboard.html", media_type="text/html")
+
+
+@app.get("/health")
 async def health():
     """Health check endpoint."""
     return {"status": "ok", "service": "wellmate-practitioner-finder", "version": "0.1.0"}
