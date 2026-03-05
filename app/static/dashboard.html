@@ -354,40 +354,32 @@
 
     .chat-body {
       flex: 1;
-      position: relative;
+      min-height: 0;
       overflow: hidden;
     }
 
     /* Embed df-messenger inside the chat panel */
     df-messenger {
-      position: absolute !important;
-      inset: 0;
-      width: 100% !important;
-      height: 100% !important;
-      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: block;
       --df-messenger-font-color: #333;
       --df-messenger-font-family: 'Inter', sans-serif;
       --df-messenger-chat-background: #FAFAFA;
       --df-messenger-message-user-background: #E7EFFE;
       --df-messenger-message-bot-background: #C8E6C9;
       --df-messenger-send-icon-color: var(--teal-dark);
+      --df-messenger-chat-border-radius: 0;
+      --df-messenger-chat-padding: 12px;
       --df-messenger-titlebar-background: var(--teal-dark);
       --df-messenger-titlebar-font-color: var(--white);
-      --df-messenger-chat-border-radius: 0;
-      --df-messenger-chat-window-height: 100%;
-      --df-messenger-chat-window-width: 100%;
+      --df-messenger-titlebar-padding: 0;
     }
 
-    /* Make all df-messenger inner elements fill the container */
-    df-messenger, df-messenger * {
-      max-height: none !important;
-    }
-
-    df-messenger-chat-bubble {
-      position: absolute !important;
-      inset: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
+    df-messenger-chat {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     /* ── Responsive ── */
@@ -539,8 +531,8 @@
           language-code="en"
           max-query-length="-1"
           allow-feedback="all">
-          <df-messenger-chat-bubble chat-title="Sage">
-          </df-messenger-chat-bubble>
+          <df-messenger-chat chat-title="Sage">
+          </df-messenger-chat>
         </df-messenger>
       </div>
     </aside>
@@ -548,78 +540,14 @@
   </div>
 
   <script>
-    var FILL_CSS = 'position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;max-width:none!important;border-radius:0!important;box-shadow:none!important;visibility:visible!important;opacity:1!important;transform:none!important;display:flex!important;flex-direction:column!important;';
-
-    function forceFullSize(root) {
-      if (!root) return;
-      // Walk all shadow roots recursively and force sizing
-      var allEls = root.querySelectorAll('*');
-      for (var i = 0; i < allEls.length; i++) {
-        var el = allEls[i];
-        var tag = el.tagName ? el.tagName.toLowerCase() : '';
-        var cls = el.className || '';
-
-        // Hide trigger/bubble buttons
-        if (cls.toString().match(/trigger|bubble-icon|fab/) || (tag === 'button' && !cls.toString().match(/send|input/))) {
-          if (el.closest && !el.closest('[class*="chat-wrapper"]') && !el.closest('[class*="message"]')) {
-            el.style.display = 'none';
-          }
-        }
-
-        // Force chat wrapper/window to fill container
-        if (cls.toString().match(/chat-wrapper|chat-window|messenger-wrapper/)) {
-          el.style.cssText = FILL_CSS;
-        }
-
-        // Hide default titlebar (we have our own)
-        if (cls.toString().match(/titlebar/) && !cls.toString().match(/message/)) {
-          el.style.display = 'none';
-        }
-
-        // Recurse into shadow DOMs
-        if (el.shadowRoot) {
-          forceFullSize(el.shadowRoot);
-        }
-      }
-    }
-
-    function openAndEmbed() {
-      var dfm = document.querySelector('df-messenger');
-      if (!dfm) return false;
-
-      // Open the chat
-      var bubble = dfm.querySelector('df-messenger-chat-bubble');
-      if (bubble && typeof bubble.openChat === 'function') {
-        bubble.openChat();
-      }
-
-      // Force all shadow DOM layers to fill the container
-      if (dfm.shadowRoot) {
-        forceFullSize(dfm.shadowRoot);
-      }
-
-      // Also walk the chat-bubble shadow root
-      if (bubble && bubble.shadowRoot) {
-        forceFullSize(bubble.shadowRoot);
-      }
-
-      return true;
-    }
-
+    // Hide df-messenger's built-in titlebar since we have our own header
     document.addEventListener('df-messenger-loaded', function() {
-      // Run multiple times as shadow DOM renders in stages
-      [0, 200, 500, 1000, 2000, 3000].forEach(function(delay) {
-        setTimeout(openAndEmbed, delay);
-      });
-    });
-
-    // Fallback polling
-    window.addEventListener('load', function() {
-      var attempts = 0;
-      var interval = setInterval(function() {
-        openAndEmbed();
-        if (++attempts > 30) clearInterval(interval);
-      }, 500);
+      var chat = document.querySelector('df-messenger-chat');
+      if (chat && chat.shadowRoot) {
+        var style = document.createElement('style');
+        style.textContent = '.titlebar { display: none !important; } .chat-wrapper { height: 100% !important; max-height: none !important; width: 100% !important; max-width: none !important; position: relative !important; border-radius: 0 !important; box-shadow: none !important; }';
+        chat.shadowRoot.appendChild(style);
+      }
     });
   </script>
 
