@@ -358,16 +358,13 @@
       overflow: hidden;
     }
 
-    /* Hide the default df-messenger floating widget; embed inside our panel */
+    /* Embed df-messenger fully inside the chat panel */
     df-messenger {
       z-index: 10;
       position: absolute !important;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100% !important;
       height: 100% !important;
-      bottom: auto !important;
-      right: auto !important;
       --df-messenger-font-color: #333;
       --df-messenger-font-family: 'Inter', sans-serif;
       --df-messenger-chat-background: #FAFAFA;
@@ -378,21 +375,32 @@
       --df-messenger-chat-window-width: 100%;
       --df-messenger-titlebar-font-color: var(--white);
       --df-messenger-send-icon-color: var(--teal-dark);
+      --df-messenger-titlebar-background: var(--teal-dark);
     }
 
-    /* Hide the default chat bubble since we embed fully */
-    df-messenger-chat-bubble {
+    /* Hide the floating bubble button but keep the chat window */
+    df-messenger::part(trigger) {
       display: none;
     }
 
-    /* Force the chat window open and fill container */
+    /* Force chat window open, filling the container */
     df-messenger::part(chat-wrapper) {
       position: absolute;
       inset: 0;
-      height: 100%;
-      width: 100%;
+      height: 100% !important;
+      width: 100% !important;
+      max-height: none !important;
       border-radius: 0;
       box-shadow: none;
+      visibility: visible !important;
+      opacity: 1 !important;
+      transform: none !important;
+      pointer-events: auto !important;
+    }
+
+    /* Hide the default titlebar since we have our own header */
+    df-messenger::part(titlebar) {
+      display: none;
     }
 
     /* ── Responsive ── */
@@ -543,11 +551,8 @@
           agent-id="1dd0a30c-fe95-4ed1-8b4a-e977a75fa37f"
           language-code="en"
           max-query-length="-1"
-          allow-feedback="all">
-          <df-messenger-chat-bubble
-            chat-title="Sage with the Wellmate"
-            chat-title-icon="https://storage.cloud.google.com/wmlogo/wellmate2.png">
-          </df-messenger-chat-bubble>
+          allow-feedback="all"
+          expand="true">
         </df-messenger>
       </div>
     </aside>
@@ -555,26 +560,28 @@
   </div>
 
   <script>
-    // Auto-expand the df-messenger chat when the component loads
+    // Ensure df-messenger chat is expanded on load
     document.addEventListener('df-messenger-loaded', function() {
       const dfMessenger = document.querySelector('df-messenger');
       if (dfMessenger) {
-        // Open the chat window programmatically
-        const chatBubble = dfMessenger.querySelector('df-messenger-chat-bubble');
-        if (chatBubble && chatBubble.openChat) {
-          chatBubble.openChat();
+        // Programmatically open the chat if not already expanded
+        if (typeof dfMessenger.openChat === 'function') {
+          dfMessenger.openChat();
         }
-        // Fallback: click the bubble to open
-        setTimeout(function() {
-          const bubble = dfMessenger.shadowRoot &&
-            dfMessenger.shadowRoot.querySelector('df-messenger-chat-bubble');
-          if (bubble && bubble.shadowRoot) {
-            const btn = bubble.shadowRoot.querySelector('button') ||
-                        bubble.shadowRoot.querySelector('[class*="bubble"]');
-            if (btn) btn.click();
-          }
-        }, 500);
       }
+    });
+
+    // Fallback: keep trying to expand for a few seconds after page load
+    window.addEventListener('load', function() {
+      var attempts = 0;
+      var interval = setInterval(function() {
+        var dfm = document.querySelector('df-messenger');
+        if (dfm && typeof dfm.openChat === 'function') {
+          dfm.openChat();
+          clearInterval(interval);
+        }
+        if (++attempts > 20) clearInterval(interval);
+      }, 500);
     });
   </script>
 
