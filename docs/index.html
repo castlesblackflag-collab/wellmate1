@@ -358,49 +358,24 @@
       overflow: hidden;
     }
 
-    /* Embed df-messenger fully inside the chat panel */
+    /* Embed df-messenger inside the chat panel */
     df-messenger {
-      z-index: 10;
       position: absolute !important;
       inset: 0;
       width: 100% !important;
       height: 100% !important;
+      z-index: 10;
       --df-messenger-font-color: #333;
       --df-messenger-font-family: 'Inter', sans-serif;
       --df-messenger-chat-background: #FAFAFA;
       --df-messenger-message-user-background: #E7EFFE;
       --df-messenger-message-bot-background: #C8E6C9;
+      --df-messenger-send-icon-color: var(--teal-dark);
+      --df-messenger-titlebar-background: var(--teal-dark);
+      --df-messenger-titlebar-font-color: var(--white);
       --df-messenger-chat-border-radius: 0;
       --df-messenger-chat-window-height: 100%;
       --df-messenger-chat-window-width: 100%;
-      --df-messenger-titlebar-font-color: var(--white);
-      --df-messenger-send-icon-color: var(--teal-dark);
-      --df-messenger-titlebar-background: var(--teal-dark);
-    }
-
-    /* Hide the floating bubble button but keep the chat window */
-    df-messenger::part(trigger) {
-      display: none;
-    }
-
-    /* Force chat window open, filling the container */
-    df-messenger::part(chat-wrapper) {
-      position: absolute;
-      inset: 0;
-      height: 100% !important;
-      width: 100% !important;
-      max-height: none !important;
-      border-radius: 0;
-      box-shadow: none;
-      visibility: visible !important;
-      opacity: 1 !important;
-      transform: none !important;
-      pointer-events: auto !important;
-    }
-
-    /* Hide the default titlebar since we have our own header */
-    df-messenger::part(titlebar) {
-      display: none;
     }
 
     /* ── Responsive ── */
@@ -551,8 +526,9 @@
           agent-id="1dd0a30c-fe95-4ed1-8b4a-e977a75fa37f"
           language-code="en"
           max-query-length="-1"
-          allow-feedback="all"
-          expand="true">
+          allow-feedback="all">
+          <df-messenger-chat-bubble chat-title="Sage">
+          </df-messenger-chat-bubble>
         </df-messenger>
       </div>
     </aside>
@@ -560,27 +536,57 @@
   </div>
 
   <script>
-    // Ensure df-messenger chat is expanded on load
-    document.addEventListener('df-messenger-loaded', function() {
-      const dfMessenger = document.querySelector('df-messenger');
-      if (dfMessenger) {
-        // Programmatically open the chat if not already expanded
-        if (typeof dfMessenger.openChat === 'function') {
-          dfMessenger.openChat();
-        }
+    // Auto-open the chat and hide the bubble trigger
+    function openAndEmbed() {
+      var dfm = document.querySelector('df-messenger');
+      if (!dfm) return false;
+
+      // Try to open the chat window
+      var bubble = dfm.querySelector('df-messenger-chat-bubble');
+      if (bubble && typeof bubble.openChat === 'function') {
+        bubble.openChat();
       }
+
+      // Hide the floating bubble icon via shadow DOM
+      try {
+        var sr = dfm.shadowRoot;
+        if (sr) {
+          // Hide the trigger/bubble button
+          var trigger = sr.querySelector('[class*="trigger"]') ||
+                        sr.querySelector('[class*="bubble"]') ||
+                        sr.querySelector('button');
+          if (trigger) trigger.style.display = 'none';
+
+          // Force the chat wrapper to fill the container
+          var wrapper = sr.querySelector('[class*="chat-wrapper"]') ||
+                        sr.querySelector('[class*="wrapper"]');
+          if (wrapper) {
+            wrapper.style.cssText = 'position:absolute;inset:0;width:100%!important;height:100%!important;max-height:none!important;border-radius:0;box-shadow:none;visibility:visible!important;opacity:1!important;transform:none!important;display:flex!important;';
+          }
+
+          // Hide the default titlebar (we have our own Sage header)
+          var titlebar = sr.querySelector('[class*="titlebar"]');
+          if (titlebar) titlebar.style.display = 'none';
+        }
+      } catch(e) { /* shadow DOM not ready yet */ }
+
+      return true;
+    }
+
+    document.addEventListener('df-messenger-loaded', function() {
+      openAndEmbed();
+      // Retry a few times to catch late rendering
+      setTimeout(openAndEmbed, 300);
+      setTimeout(openAndEmbed, 800);
+      setTimeout(openAndEmbed, 1500);
     });
 
-    // Fallback: keep trying to expand for a few seconds after page load
+    // Fallback polling in case df-messenger-loaded doesn't fire
     window.addEventListener('load', function() {
       var attempts = 0;
       var interval = setInterval(function() {
-        var dfm = document.querySelector('df-messenger');
-        if (dfm && typeof dfm.openChat === 'function') {
-          dfm.openChat();
-          clearInterval(interval);
-        }
-        if (++attempts > 20) clearInterval(interval);
+        if (openAndEmbed() && ++attempts > 5) clearInterval(interval);
+        if (++attempts > 30) clearInterval(interval);
       }, 500);
     });
   </script>
