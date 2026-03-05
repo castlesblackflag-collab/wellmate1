@@ -3,7 +3,7 @@
 Acceptance tests addressed:
 - AT6: Fit reasons tie back to goal outcomes and preferences.
 - Scoring determinism: same inputs always produce same outputs.
-- Outcome-first ranking: results differ from naive popularity ordering.
+- Priority ordering: contact/accessibility dominate over outcome alignment.
 """
 
 from app.scoring import (
@@ -47,8 +47,7 @@ class TestScoreCandidate:
         kwargs = dict(
             goal_outcomes=["reduce pain"],
             main_issue="back pain",
-            diagnoses=[],
-            care_style="medical",
+            provider_scope="medical",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -65,8 +64,7 @@ class TestScoreCandidate:
             candidate=candidate,
             goal_outcomes=["improve mobility"],
             main_issue=None,
-            diagnoses=[],
-            care_style="medical",
+            provider_scope="medical",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -75,15 +73,14 @@ class TestScoreCandidate:
         assert 0 <= score <= 100
 
     def test_care_style_alignment_medical(self):
-        """A physician should score higher for medical care_style than whole_health."""
+        """A physician should score higher for medical scope than whole_health."""
         physician = _make_candidate(category="physician", is_physician=True)
 
         score_med, subs_med = score_candidate(
             candidate=physician,
             goal_outcomes=["get treatment"],
             main_issue=None,
-            diagnoses=[],
-            care_style="medical",
+            provider_scope="medical",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -93,8 +90,7 @@ class TestScoreCandidate:
             candidate=physician,
             goal_outcomes=["get treatment"],
             main_issue=None,
-            diagnoses=[],
-            care_style="whole_health",
+            provider_scope="whole_health",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -103,15 +99,14 @@ class TestScoreCandidate:
         assert subs_med["care_style_alignment"] > subs_wh["care_style_alignment"]
 
     def test_care_style_alignment_whole_health(self):
-        """A yoga provider should score higher for whole_health care_style."""
+        """A yoga provider should score higher for whole_health scope."""
         yoga = _make_candidate(category="yoga", is_physician=False)
 
         _, subs_wh = score_candidate(
             candidate=yoga,
             goal_outcomes=["reduce stress"],
             main_issue=None,
-            diagnoses=[],
-            care_style="whole_health",
+            provider_scope="whole_health",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -121,8 +116,7 @@ class TestScoreCandidate:
             candidate=yoga,
             goal_outcomes=["reduce stress"],
             main_issue=None,
-            diagnoses=[],
-            care_style="medical",
+            provider_scope="medical",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -139,8 +133,7 @@ class TestScoreCandidate:
             candidate=close,
             goal_outcomes=["get care"],
             main_issue=None,
-            diagnoses=[],
-            care_style="medical",
+            provider_scope="medical",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -150,8 +143,7 @@ class TestScoreCandidate:
             candidate=far,
             goal_outcomes=["get care"],
             main_issue=None,
-            diagnoses=[],
-            care_style="medical",
+            provider_scope="medical",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -167,8 +159,7 @@ class TestScoreCandidate:
             candidate=acupuncture,
             goal_outcomes=["reduce pain"],
             main_issue=None,
-            diagnoses=[],
-            care_style="whole_health",
+            provider_scope="whole_health",
             preferences=["non-pharmacologic"],
             avoidances=[],
             visit_mode="either",
@@ -178,8 +169,7 @@ class TestScoreCandidate:
             candidate=acupuncture,
             goal_outcomes=["reduce pain"],
             main_issue=None,
-            diagnoses=[],
-            care_style="whole_health",
+            provider_scope="whole_health",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -194,8 +184,7 @@ class TestScoreCandidate:
             candidate=no_rating,
             goal_outcomes=["get care"],
             main_issue=None,
-            diagnoses=[],
-            care_style="medical",
+            provider_scope="medical",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -203,49 +192,123 @@ class TestScoreCandidate:
         )
         assert subs["review_quality"] < 50.0
 
+    def test_contact_availability_phone_scores_high(self):
+        """Provider with phone should score much higher on contact_availability."""
+        with_phone = _make_candidate(phone="512-555-0100", website="https://example.com")
+        without = _make_candidate(phone=None, website=None)
 
-class TestOutcomeFirstRanking:
-    """Verify that outcome alignment drives ranking, not popularity alone."""
+        _, subs_with = score_candidate(
+            candidate=with_phone,
+            goal_outcomes=[],
+            main_issue=None,
+            provider_scope="medical",
+            preferences=[],
+            avoidances=[],
+            visit_mode="either",
+            radius_km=20,
+        )
+        _, subs_without = score_candidate(
+            candidate=without,
+            goal_outcomes=[],
+            main_issue=None,
+            provider_scope="medical",
+            preferences=[],
+            avoidances=[],
+            visit_mode="either",
+            radius_km=20,
+        )
+        assert subs_with["contact_availability"] > subs_without["contact_availability"]
+        assert subs_with["contact_availability"] == 100.0
+        assert subs_without["contact_availability"] == 0.0
 
-    def test_outcome_aligned_beats_popular(self):
-        """A pain specialist should rank above a popular general provider
-        when the user goal is pain-related."""
-        # Specialist: lower rating but matches pain outcomes
+    def test_data_completeness_rewards_complete_data(self):
+        """Provider with full data should score higher on data_completeness."""
+        complete = _make_candidate(
+            name="Full Provider",
+            address="123 Main St",
+            rating=4.5,
+            review_count=50,
+            phone="512-555-0100",
+            website="https://example.com",
+        )
+        sparse = _make_candidate(
+            name="Sparse",
+            address=None,
+            rating=None,
+            review_count=None,
+            phone=None,
+            website=None,
+        )
+
+        _, subs_complete = score_candidate(
+            candidate=complete,
+            goal_outcomes=[],
+            main_issue=None,
+            provider_scope="medical",
+            preferences=[],
+            avoidances=[],
+            visit_mode="either",
+            radius_km=20,
+        )
+        _, subs_sparse = score_candidate(
+            candidate=sparse,
+            goal_outcomes=[],
+            main_issue=None,
+            provider_scope="medical",
+            preferences=[],
+            avoidances=[],
+            visit_mode="either",
+            radius_km=20,
+        )
+        assert subs_complete["data_completeness"] > subs_sparse["data_completeness"]
+
+
+class TestContactDominatesOutcome:
+    """Verify that contact/accessibility dominate outcome alignment in ranking."""
+
+    def test_provider_with_contact_beats_specialist_without(self):
+        """A provider with phone should rank above a specialist without contact
+        when both are close, because contact availability is a higher priority."""
+        # Generic provider with phone and website
+        with_contact = _make_candidate(
+            place_id="with_contact",
+            name="General Clinic",
+            category="clinic",
+            rating=4.0,
+            review_count=30,
+            phone="512-555-0100",
+            website="https://example.com",
+            distance_km=3.0,
+            query_used="doctor clinic",
+            npi_specialties=[],
+        )
+        # Specialist without contact info
         specialist = _make_candidate(
             place_id="specialist",
             name="Pain Specialist",
             category="physician",
             rating=4.0,
             review_count=30,
+            phone=None,
+            website=None,
+            distance_km=3.0,
             query_used="Pain Medicine doctor",
             npi_specialties=["Pain Medicine"],
         )
-        # Popular: higher rating but no specialty match
-        popular = _make_candidate(
-            place_id="popular",
-            name="Popular Clinic",
-            category="clinic",
-            rating=4.9,
-            review_count=500,
-            query_used="doctor clinic",
-            npi_specialties=[],
-        )
 
         ranked = score_and_rank_candidates(
-            candidates=[popular, specialist],
-            goal_outcomes=["walk without pain", "avoid long-term meds"],
+            candidates=[specialist, with_contact],
+            goal_outcomes=["walk without pain"],
             main_issue="chronic back pain",
-            diagnoses=[],
-            care_style="medical",
-            preferences=["non-pharmacologic"],
-            avoidances=["opioids"],
+            provider_scope="medical",
+            preferences=[],
+            avoidances=[],
             visit_mode="either",
             radius_km=20,
             max_results=5,
         )
 
-        # Specialist should rank first despite lower rating
-        assert ranked[0]["place_id"] == "specialist"
+        assert ranked[0]["place_id"] == "with_contact"
 
     def test_max_results_limits_output(self):
         """Only max_results candidates should be returned."""
@@ -257,8 +320,7 @@ class TestOutcomeFirstRanking:
             candidates=candidates,
             goal_outcomes=["general health"],
             main_issue=None,
-            diagnoses=[],
-            care_style="medical",
+            provider_scope="medical",
             preferences=[],
             avoidances=[],
             visit_mode="either",
@@ -271,43 +333,64 @@ class TestOutcomeFirstRanking:
 class TestFitReasons:
     """Verify fit reasons tie back to user goals and preferences."""
 
-    def test_reasons_reference_goal_outcomes(self):
-        """Fit reasons should include the user's stated goals."""
-        candidate = _make_candidate(
-            category="acupuncture",
-            is_physician=False,
-            rating=4.5,
-            review_count=80,
-        )
+    def test_reasons_reference_distance(self):
+        """Fit reasons should include distance when available."""
+        candidate = _make_candidate(distance_km=3.2)
         sub_scores = {
-            "outcome_alignment": 80.0,
-            "symptom_alignment": 50.0,
-            "care_style_alignment": 100.0,
-            "preference_alignment": 75.0,
+            "data_completeness": 80.0,
+            "accessibility": 80.0,
+            "contact_availability": 65.0,
             "review_quality": 70.0,
-            "accessibility": 60.0,
+            "preference_alignment": 50.0,
+            "care_style_alignment": 100.0,
+            "symptom_alignment": 50.0,
+            "outcome_alignment": 80.0,
         }
         reasons = generate_fit_reasons(
             candidate=candidate,
             sub_scores=sub_scores,
             goal_outcomes=["reduce chronic pain"],
-            preferences=["non-pharmacologic"],
-            avoidances=["opioids"],
+            preferences=[],
+            avoidances=[],
         )
-        # Should contain at least one reason referencing the goal
-        goal_reasons = [r for r in reasons if "reduce chronic pain" in r.lower()]
-        assert len(goal_reasons) >= 1
+        distance_reasons = [r for r in reasons if "km" in r.lower()]
+        assert len(distance_reasons) >= 1
+
+    def test_reasons_reference_contact(self):
+        """Fit reasons should mention phone availability."""
+        candidate = _make_candidate(phone="512-555-0100")
+        sub_scores = {
+            "data_completeness": 80.0,
+            "accessibility": 60.0,
+            "contact_availability": 65.0,
+            "review_quality": 70.0,
+            "preference_alignment": 50.0,
+            "care_style_alignment": 100.0,
+            "symptom_alignment": 50.0,
+            "outcome_alignment": 50.0,
+        }
+        reasons = generate_fit_reasons(
+            candidate=candidate,
+            sub_scores=sub_scores,
+            goal_outcomes=[],
+            preferences=[],
+            avoidances=[],
+        )
+        phone_reasons = [r for r in reasons if "phone" in r.lower()]
+        assert len(phone_reasons) >= 1
 
     def test_reasons_reference_preference(self):
         """Fit reasons should mention matched preferences."""
         candidate = _make_candidate(category="yoga", is_physician=False)
         sub_scores = {
-            "outcome_alignment": 70.0,
-            "symptom_alignment": 50.0,
-            "care_style_alignment": 100.0,
-            "preference_alignment": 75.0,
-            "review_quality": 50.0,
+            "data_completeness": 50.0,
             "accessibility": 60.0,
+            "contact_availability": 0.0,
+            "review_quality": 50.0,
+            "preference_alignment": 75.0,
+            "care_style_alignment": 100.0,
+            "symptom_alignment": 50.0,
+            "outcome_alignment": 70.0,
         }
         reasons = generate_fit_reasons(
             candidate=candidate,
@@ -326,14 +409,17 @@ class TestFitReasons:
             is_physician=False,
             rating=None,
             review_count=None,
+            distance_km=None,
         )
         sub_scores = {
-            "outcome_alignment": 30.0,
-            "symptom_alignment": 30.0,
-            "care_style_alignment": 30.0,
-            "preference_alignment": 30.0,
-            "review_quality": 30.0,
+            "data_completeness": 30.0,
             "accessibility": 30.0,
+            "contact_availability": 0.0,
+            "review_quality": 30.0,
+            "preference_alignment": 30.0,
+            "care_style_alignment": 30.0,
+            "symptom_alignment": 30.0,
+            "outcome_alignment": 30.0,
         }
         reasons = generate_fit_reasons(
             candidate=candidate,
@@ -354,14 +440,18 @@ class TestFitReasons:
             rating=4.8,
             review_count=200,
             distance_km=1.5,
+            phone="512-555-0100",
+            website="https://example.com",
         )
         sub_scores = {
-            "outcome_alignment": 95.0,
-            "symptom_alignment": 90.0,
-            "care_style_alignment": 100.0,
-            "preference_alignment": 90.0,
-            "review_quality": 90.0,
+            "data_completeness": 100.0,
             "accessibility": 95.0,
+            "contact_availability": 100.0,
+            "review_quality": 90.0,
+            "preference_alignment": 90.0,
+            "care_style_alignment": 100.0,
+            "symptom_alignment": 90.0,
+            "outcome_alignment": 95.0,
         }
         reasons = generate_fit_reasons(
             candidate=candidate,

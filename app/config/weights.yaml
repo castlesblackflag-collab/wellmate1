@@ -1,14 +1,26 @@
 # Scoring weight configuration for practitioner ranking.
 # All weights should sum to 1.0.
 # Adjust these to change ranking behavior without code changes.
+#
+# Priority order (highest to lowest):
+#   1. Access / Existence (data completeness)
+#   2. Accessibility (distance + telehealth)
+#   3. Contact availability (phone, website)
+#   4. Review quality (rating + review_count)
+#   5. Preference / Avoidance alignment
+#   6. Care style alignment
+#   7. Symptom alignment
+#   8. Outcome alignment
 
 scoring_weights:
-  outcome_alignment: 0.30
-  symptom_alignment: 0.15
-  care_style_alignment: 0.15
-  preference_alignment: 0.15
-  review_quality: 0.10
-  accessibility: 0.15
+  data_completeness: 0.20
+  accessibility: 0.20
+  contact_availability: 0.18
+  review_quality: 0.15
+  preference_alignment: 0.10
+  care_style_alignment: 0.07
+  symptom_alignment: 0.05
+  outcome_alignment: 0.05
 
 # Thresholds and knobs
 npi_match_threshold: 0.75

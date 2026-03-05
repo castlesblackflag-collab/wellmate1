@@ -31,14 +31,16 @@ class Config:
         self.category_to_places_queries: dict = mappings.get("category_to_places_queries", {})
         self.urgent_symptoms: list[str] = mappings.get("urgent_symptoms", [])
 
-        # Scoring weights
+        # Scoring weights (priority: access > accessibility > contact > review > preference > care style > symptom > outcome)
         sw = weights_cfg.get("scoring_weights", {})
-        self.w_outcome: float = sw.get("outcome_alignment", 0.30)
-        self.w_symptom: float = sw.get("symptom_alignment", 0.15)
-        self.w_care_style: float = sw.get("care_style_alignment", 0.15)
-        self.w_preference: float = sw.get("preference_alignment", 0.15)
-        self.w_review: float = sw.get("review_quality", 0.10)
-        self.w_accessibility: float = sw.get("accessibility", 0.15)
+        self.w_data_completeness: float = sw.get("data_completeness", 0.20)
+        self.w_accessibility: float = sw.get("accessibility", 0.20)
+        self.w_contact: float = sw.get("contact_availability", 0.18)
+        self.w_review: float = sw.get("review_quality", 0.15)
+        self.w_preference: float = sw.get("preference_alignment", 0.10)
+        self.w_care_style: float = sw.get("care_style_alignment", 0.07)
+        self.w_symptom: float = sw.get("symptom_alignment", 0.05)
+        self.w_outcome: float = sw.get("outcome_alignment", 0.05)
 
         # Operational knobs
         self.npi_match_threshold: float = weights_cfg.get("npi_match_threshold", 0.75)

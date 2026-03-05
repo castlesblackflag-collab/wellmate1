@@ -1,7 +1,7 @@
 """Pydantic request/response models for the search_practitioners tool contract.
 
 Design principles (Playbook-first):
-- Minimal required fields: location_text, care_style, goal_outcomes
+- Minimal required fields: location_text, provider_scope
 - Flat request body, no deep nesting
 - Server-side defaults for all optional fields
 - Strict response shape: results/meta/warnings/error always present
@@ -27,25 +27,40 @@ class SearchRequest(BaseModel):
         ...,
         description="ZIP code or city name, e.g. '78701' or 'Austin, TX'",
     )
-    care_style: Literal["medical", "whole_health", "mixed"] = Field(
+    provider_scope: Literal["medical", "whole_health", "medical_and_whole_health"] = Field(
         ...,
-        description="Type of care sought: medical, whole_health, or mixed",
-    )
-    goal_outcomes: list[str] = Field(
-        ...,
-        min_length=1,
-        max_length=5,
-        description="1-5 short outcome strings the user wants to achieve",
+        description="Scope of providers to search: medical, whole_health, or medical_and_whole_health",
     )
 
     # --- Optional (server provides safe defaults) ---
+    max_results: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Maximum number of results to return",
+    )
+    radius_km: int = Field(
+        default=20,
+        ge=1,
+        le=100,
+        description="Search radius in kilometers",
+    )
+    visit_mode: Literal["in_person", "telehealth", "either"] = Field(
+        default="either",
+        description="Preferred visit modality",
+    )
     main_issue: str | None = Field(
         default=None,
         description="Primary symptom or issue, e.g. 'chronic lower back pain'",
     )
-    diagnoses: list[str] = Field(
+    goal_outcomes: list[str] = Field(
         default_factory=list,
-        description="Known diagnoses, e.g. ['type 2 diabetes']",
+        max_length=5,
+        description="0-5 short outcome strings the user wants to achieve",
+    )
+    care_style: Literal["medical", "whole_health", "mixed"] | None = Field(
+        default=None,
+        description="Care style hint (medical, whole_health, or mixed)",
     )
     preferences: list[str] = Field(
         default_factory=list,
@@ -55,25 +70,9 @@ class SearchRequest(BaseModel):
         default_factory=list,
         description="Things to avoid, e.g. ['opioids', 'surgery']",
     )
-    visit_mode: Literal["in_person", "telehealth", "either"] = Field(
-        default="either",
-        description="Preferred visit modality",
-    )
     insurance_hint: str | None = Field(
         default=None,
         description="Insurance carrier hint (informational only)",
-    )
-    radius_km: int = Field(
-        default=20,
-        ge=1,
-        le=100,
-        description="Search radius in kilometers",
-    )
-    max_results: int = Field(
-        default=5,
-        ge=1,
-        le=20,
-        description="Maximum number of results to return",
     )
 
 
@@ -121,7 +120,7 @@ class ResponseMeta(BaseModel):
     lng: float | None = None
     radius_km: int = 20
     result_count: int = 0
-    care_style: str = ""
+    provider_scope: str = ""
     goal_outcomes: list[str] = Field(default_factory=list)
 
 

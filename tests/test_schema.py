@@ -26,37 +26,35 @@ class TestSearchRequest:
         """AT1: Request with only required fields should parse successfully."""
         req = SearchRequest(
             location_text="78701",
-            care_style="medical",
-            goal_outcomes=["walk without pain"],
+            provider_scope="medical",
         )
         assert req.location_text == "78701"
-        assert req.care_style == "medical"
-        assert req.goal_outcomes == ["walk without pain"]
+        assert req.provider_scope == "medical"
 
     def test_server_defaults_applied(self):
         """All optional fields should have safe defaults."""
         req = SearchRequest(
             location_text="Austin, TX",
-            care_style="mixed",
-            goal_outcomes=["reduce stress"],
+            provider_scope="medical_and_whole_health",
         )
         assert req.radius_km == 20
         assert req.max_results == 5
         assert req.visit_mode == "either"
         assert req.preferences == []
         assert req.avoidances == []
-        assert req.diagnoses == []
+        assert req.goal_outcomes == []
         assert req.main_issue is None
         assert req.insurance_hint is None
+        assert req.care_style is None
 
     def test_all_fields_provided(self):
         """Request with all fields should parse successfully."""
         req = SearchRequest(
             location_text="78701",
-            care_style="whole_health",
+            provider_scope="whole_health",
             goal_outcomes=["reduce pain", "improve sleep"],
             main_issue="chronic back pain",
-            diagnoses=["lumbar disc herniation"],
+            care_style="whole_health",
             preferences=["non-pharmacologic", "mind-body"],
             avoidances=["opioids", "surgery"],
             visit_mode="in_person",
@@ -64,18 +62,17 @@ class TestSearchRequest:
             radius_km=30,
             max_results=10,
         )
-        assert req.care_style == "whole_health"
+        assert req.provider_scope == "whole_health"
         assert len(req.goal_outcomes) == 2
         assert len(req.preferences) == 2
         assert req.radius_km == 30
 
-    def test_invalid_care_style_rejected(self):
-        """Invalid enum value for care_style should be rejected."""
+    def test_invalid_provider_scope_rejected(self):
+        """Invalid enum value for provider_scope should be rejected."""
         with pytest.raises(ValidationError):
             SearchRequest(
                 location_text="78701",
-                care_style="invalid",
-                goal_outcomes=["test"],
+                provider_scope="invalid",
             )
 
     def test_invalid_visit_mode_rejected(self):
@@ -83,26 +80,22 @@ class TestSearchRequest:
         with pytest.raises(ValidationError):
             SearchRequest(
                 location_text="78701",
-                care_style="medical",
-                goal_outcomes=["test"],
+                provider_scope="medical",
                 visit_mode="virtual",
-            )
-
-    def test_empty_goal_outcomes_rejected(self):
-        """goal_outcomes must have at least 1 item."""
-        with pytest.raises(ValidationError):
-            SearchRequest(
-                location_text="78701",
-                care_style="medical",
-                goal_outcomes=[],
             )
 
     def test_missing_location_rejected(self):
         """location_text is required."""
         with pytest.raises(ValidationError):
             SearchRequest(
-                care_style="medical",
-                goal_outcomes=["test"],
+                provider_scope="medical",
+            )
+
+    def test_missing_provider_scope_rejected(self):
+        """provider_scope is required."""
+        with pytest.raises(ValidationError):
+            SearchRequest(
+                location_text="78701",
             )
 
     def test_radius_bounds(self):
@@ -110,17 +103,31 @@ class TestSearchRequest:
         with pytest.raises(ValidationError):
             SearchRequest(
                 location_text="78701",
-                care_style="medical",
-                goal_outcomes=["test"],
+                provider_scope="medical",
                 radius_km=0,
             )
         with pytest.raises(ValidationError):
             SearchRequest(
                 location_text="78701",
-                care_style="medical",
-                goal_outcomes=["test"],
+                provider_scope="medical",
                 radius_km=200,
             )
+
+    def test_goal_outcomes_optional(self):
+        """goal_outcomes should default to empty list when not provided."""
+        req = SearchRequest(
+            location_text="78701",
+            provider_scope="medical",
+        )
+        assert req.goal_outcomes == []
+
+    def test_medical_and_whole_health_scope(self):
+        """medical_and_whole_health is a valid provider_scope."""
+        req = SearchRequest(
+            location_text="78701",
+            provider_scope="medical_and_whole_health",
+        )
+        assert req.provider_scope == "medical_and_whole_health"
 
 
 class TestSearchResponse:
@@ -174,8 +181,8 @@ class TestSearchResponse:
             contact=ProviderContact(phone="512-555-0100", website="https://example.com"),
             score=91,
             fit_reasons=[
-                "Matches goal: improve mobility",
-                "Aligns with preference: non-pharmacologic care",
+                "Located 4.2 km away",
+                "Phone number available for booking",
             ],
             data_sources=["google_places", "npi_registry"],
         )
@@ -187,7 +194,7 @@ class TestSearchResponse:
                 lng=-97.7431,
                 radius_km=20,
                 result_count=1,
-                care_style="medical",
+                provider_scope="medical",
                 goal_outcomes=["improve mobility"],
             ),
             warnings=[],
@@ -206,7 +213,6 @@ class TestSearchResponse:
             name="Unknown Clinic",
             provider_category="other",
             score=40,
-            # All other fields use defaults (None, empty lists, False)
         )
         data = result.model_dump()
         assert data["address"] is None

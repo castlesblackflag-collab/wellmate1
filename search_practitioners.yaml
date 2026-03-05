@@ -2,11 +2,11 @@ openapi: 3.0.3
 info:
   title: Wellmate Practitioner Finder
   description: >
-    Search and rank healthcare practitioners based on user goals, care style
-    preferences, and location. Designed for Google Conversational Agent /
+    Search and rank healthcare practitioners based on user goals, provider scope,
+    and location. Designed for Google Conversational Agent /
     Playbook tool integration. Returns real providers with structured fit
     reasons. Never fabricates provider information.
-  version: 0.1.0
+  version: 0.2.0
 
 servers:
   - url: https://wellmate-practitioner-finder-XXXXX.a.run.app
@@ -16,12 +16,12 @@ paths:
   /search_practitioners:
     post:
       operationId: search_practitioners
-      summary: Search and rank practitioners by user goals and preferences
+      summary: Search and rank practitioners by provider scope and location
       description: >
-        Primary tool endpoint. Accepts user goals, care style, and location.
-        Returns ranked providers with deterministic fit reasons tied to user
-        inputs. Always returns the same response shape, even on error or
-        empty results.
+        Primary tool endpoint. Accepts provider scope and location (required),
+        plus optional goals, preferences, and visit mode. Returns ranked
+        providers with deterministic fit reasons tied to user inputs. Always
+        returns the same response shape, even on error or empty results.
       requestBody:
         required: true
         content:
@@ -42,35 +42,55 @@ components:
       type: object
       required:
         - location_text
-        - care_style
-        - goal_outcomes
+        - provider_scope
       properties:
         location_text:
           type: string
           description: "ZIP code or city name, e.g. '78701' or 'Austin, TX'"
+        provider_scope:
+          type: string
+          enum:
+            - medical
+            - whole_health
+            - medical_and_whole_health
+          description: "Scope of providers to search"
+        max_results:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 20
+          description: "Maximum number of results to return"
+        radius_km:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+          description: "Search radius in kilometers"
+        visit_mode:
+          type: string
+          enum:
+            - in_person
+            - telehealth
+            - either
+          default: either
+          description: "Preferred visit modality"
+        main_issue:
+          type: string
+          description: "Primary symptom or issue, e.g. 'chronic lower back pain'"
+        goal_outcomes:
+          type: array
+          items:
+            type: string
+          default: []
+          maxItems: 5
+          description: "0-5 short outcome strings the user wants to achieve"
         care_style:
           type: string
           enum:
             - medical
             - whole_health
             - mixed
-          description: "Type of care sought"
-        goal_outcomes:
-          type: array
-          items:
-            type: string
-          minItems: 1
-          maxItems: 5
-          description: "1-5 short outcome strings the user wants to achieve"
-        main_issue:
-          type: string
-          description: "Primary symptom or issue, e.g. 'chronic lower back pain'"
-        diagnoses:
-          type: array
-          items:
-            type: string
-          default: []
-          description: "Known diagnoses"
+          description: "Care style hint (optional)"
         preferences:
           type: array
           items:
@@ -83,29 +103,9 @@ components:
             type: string
           default: []
           description: "Things to avoid, e.g. ['opioids', 'surgery']"
-        visit_mode:
-          type: string
-          enum:
-            - in_person
-            - telehealth
-            - either
-          default: either
-          description: "Preferred visit modality"
         insurance_hint:
           type: string
           description: "Insurance carrier hint (informational only)"
-        radius_km:
-          type: integer
-          default: 20
-          minimum: 1
-          maximum: 100
-          description: "Search radius in kilometers"
-        max_results:
-          type: integer
-          default: 5
-          minimum: 1
-          maximum: 20
-          description: "Maximum number of results to return"
 
     SearchResponse:
       type: object
@@ -223,7 +223,7 @@ components:
           type: integer
         result_count:
           type: integer
-        care_style:
+        provider_scope:
           type: string
         goal_outcomes:
           type: array

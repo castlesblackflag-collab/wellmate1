@@ -7,7 +7,7 @@ Query strategy:
   free-text queries like "acupuncturist near Austin TX" and is better suited to
   modality-based searches. Nearby Search is limited to type-based filtering which
   does not cover whole-health categories well.
-- Build 1-4 queries per request depending on care_style and mapped modalities.
+- Build 1-4 queries per request depending on provider_scope and mapped modalities.
   Cap at max_search_queries from config.
 
 Cost control:
@@ -62,7 +62,7 @@ _WHOLE_HEALTH_TYPES = {
 
 
 def _build_search_queries(
-    care_style: str,
+    provider_scope: str,
     goal_outcomes: list[str],
     main_issue: str | None,
     mappings: dict,
@@ -71,10 +71,11 @@ def _build_search_queries(
     """Build Places text search query strings from user inputs and config maps.
 
     Returns a list of query strings, capped at max_search_queries.
+    provider_scope is one of: medical, whole_health, medical_and_whole_health.
     """
     queries: list[str] = []
 
-    # Determine which categories are relevant based on care_style and outcomes
+    # Determine which categories are relevant based on provider_scope and outcomes
     medical_modalities: set[str] = set()
     wh_modalities: set[str] = set()
 
@@ -84,13 +85,13 @@ def _build_search_queries(
 
     for keyword, modal_map in mappings.items():
         if keyword in outcome_text:
-            if care_style in ("medical", "mixed"):
+            if provider_scope in ("medical", "medical_and_whole_health"):
                 medical_modalities.update(modal_map.get("medical", []))
-            if care_style in ("whole_health", "mixed"):
+            if provider_scope in ("whole_health", "medical_and_whole_health"):
                 wh_modalities.update(modal_map.get("whole_health", []))
 
     # Build medical queries
-    if care_style in ("medical", "mixed"):
+    if provider_scope in ("medical", "medical_and_whole_health"):
         if medical_modalities:
             # Use most specific specialties as query terms
             specs = list(medical_modalities)[:3]
@@ -99,7 +100,7 @@ def _build_search_queries(
             queries.append("doctor clinic")
 
     # Build whole-health queries
-    if care_style in ("whole_health", "mixed"):
+    if provider_scope in ("whole_health", "medical_and_whole_health"):
         # Group by modality category and use category_queries
         wh_categories_used: set[str] = set()
         for modality in wh_modalities:
@@ -305,7 +306,7 @@ async def enrich_with_details(
 
 
 async def retrieve_candidates(
-    care_style: str,
+    provider_scope: str,
     goal_outcomes: list[str],
     main_issue: str | None,
     lat: float,
@@ -318,7 +319,7 @@ async def retrieve_candidates(
     Returns a list of enriched candidate dicts.
     """
     queries = _build_search_queries(
-        care_style=care_style,
+        provider_scope=provider_scope,
         goal_outcomes=goal_outcomes,
         main_issue=main_issue,
         mappings=cfg.outcome_to_modalities,

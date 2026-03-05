@@ -64,8 +64,14 @@ curl -X POST "$SERVICE_URL/search_practitioners" \
   -H "Content-Type: application/json" \
   -d '{
     "location_text": "78701",
-    "care_style": "mixed",
-    "goal_outcomes": ["reduce chronic pain", "improve mobility"]
+    "provider_scope": "medical_and_whole_health",
+    "radius_km": 20,
+    "visit_mode": "either",
+    "main_issue": "chronic low back pain",
+    "goal_outcomes": ["walk without pain", "avoid long-term meds"],
+    "preferences": ["non-pharmacologic"],
+    "avoidances": ["opioids"],
+    "max_results": 5
   }'
 ```
 
@@ -87,7 +93,7 @@ Create a new Playbook in your Wellmate agent with these settings:
 ### Goal
 ```
 Help users find healthcare practitioners that match their specific health goals,
-care style preferences, and location.
+provider scope, and location.
 ```
 
 ### Instructions
@@ -96,9 +102,9 @@ care style preferences, and location.
 - When the user wants to find a doctor, practitioner, therapist, or any
   healthcare provider, collect the following required information:
   1. Their location (ZIP code or city)
-  2. Their care style preference (medical, whole health, or mixed)
-  3. Their health goals or desired outcomes (1-3 short statements)
-- Optionally collect: main health issue, preferences, avoidances, visit mode.
+  2. Their provider scope (medical, whole health, or medical and whole health)
+- Optionally collect: main health issue, goal outcomes, preferences, avoidances,
+  visit mode, max results, radius.
 - Once you have the required fields, call the search_practitioners tool.
 - Present the results using ONLY the data returned by the tool.
 - For each provider, mention their name, category, distance, rating, and
@@ -107,7 +113,7 @@ care style preferences, and location.
 - NEVER add fit reasons beyond what the tool returned.
 - If the tool returns warnings, communicate them to the user.
 - If the tool returns an error, tell the user and suggest adjusting their search.
-- Support refinement: the user can ask to expand radius, change care style,
+- Support refinement: the user can ask to expand radius, change scope,
   switch to telehealth, or adjust preferences. Make a new tool call with
   updated parameters.
 ```
@@ -122,16 +128,16 @@ In the Dialogflow CX console, open the Playbook simulator and test these flows:
 ### Flow 1: Minimal required fields
 ```
 User: I need help finding a doctor near Austin TX for back pain
--> Playbook collects: location=Austin TX, care_style=medical, goals=[reduce back pain]
--> Calls tool
+-> Playbook collects: location=Austin TX, provider_scope=medical
+-> Calls tool with main_issue="back pain"
 -> Presents ranked results with fit_reasons
 ```
 
 ### Flow 2: Whole health mixed
 ```
 User: I want to explore holistic options for stress and anxiety in 90210
--> Playbook collects: location=90210, care_style=whole_health, goals=[reduce stress, manage anxiety]
--> Calls tool
+-> Playbook collects: location=90210, provider_scope=whole_health
+-> Calls tool with goal_outcomes=[reduce stress, manage anxiety]
 -> Presents yoga, meditation, acupuncture providers
 ```
 

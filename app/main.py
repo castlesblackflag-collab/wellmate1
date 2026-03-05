@@ -13,13 +13,12 @@ Observability:
 - Logs: request_id, latency, upstream status, result counts.
 - Does NOT log raw user free text (goal_outcomes, main_issue).
 
-Addressing open question #6 (reducing LLM tool-call failure modes):
-- Schema uses Literal types for enums (not free strings) so the LLM picks
+Schema design:
+- Uses Literal types for enums (not free strings) so the LLM picks
   from a closed set.
-- Only 3 required fields; everything else has safe defaults.
+- Only 2 required fields (location_text, provider_scope); everything else
+  has safe defaults.
 - Response shape never varies; even errors return the full structure.
-- OpenAPI spec (auto-generated) includes descriptions on every field to
-  guide the LLM's parameter selection.
 """
 
 from __future__ import annotations
@@ -64,7 +63,7 @@ _http_client: AsyncClient | None = None
 async def lifespan(application: FastAPI):
     global _http_client
     _http_client = AsyncClient()
-    logger.info("app_started", version="0.1.0")
+    logger.info("app_started", version="0.2.0")
     yield
     await _http_client.aclose()
     logger.info("app_stopped")
@@ -74,10 +73,10 @@ app = FastAPI(
     title="Wellmate Practitioner Finder",
     description=(
         "Search and rank healthcare practitioners based on user goals, "
-        "care style preferences, and location. Designed for Google "
+        "provider scope, and location. Designed for Google "
         "Conversational Agent / Playbook tool integration."
     ),
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -150,7 +149,7 @@ def _error_response(error_msg: str, warnings: list[str] | None = None) -> Search
 @app.get("/")
 async def health():
     """Health check endpoint."""
-    return {"status": "ok", "service": "wellmate-practitioner-finder", "version": "0.1.0"}
+    return {"status": "ok", "service": "wellmate-practitioner-finder", "version": "0.2.0"}
 
 
 @app.post(
@@ -159,7 +158,7 @@ async def health():
     summary="Search and rank practitioners by user goals and preferences",
     description=(
         "Primary tool endpoint for the Practitioner Finder Playbook. "
-        "Accepts user goals, care style, and location; returns ranked "
+        "Accepts provider scope, optional goals, and location; returns ranked "
         "providers with structured fit reasons."
     ),
 )
@@ -172,7 +171,7 @@ async def search_practitioners(req: SearchRequest) -> SearchResponse:
     logger.info(
         "search_started",
         request_id=request_id,
-        care_style=req.care_style,
+        provider_scope=req.provider_scope,
         outcome_count=len(req.goal_outcomes),
         radius_km=req.radius_km,
     )
@@ -198,7 +197,7 @@ async def search_practitioners(req: SearchRequest) -> SearchResponse:
     # Step 2: Retrieve candidates from Google Places
     try:
         candidates = await retrieve_candidates(
-            care_style=req.care_style,
+            provider_scope=req.provider_scope,
             goal_outcomes=req.goal_outcomes,
             main_issue=req.main_issue,
             lat=lat,
@@ -220,7 +219,7 @@ async def search_practitioners(req: SearchRequest) -> SearchResponse:
                 lng=lng,
                 radius_km=req.radius_km,
                 result_count=0,
-                care_style=req.care_style,
+                provider_scope=req.provider_scope,
                 goal_outcomes=req.goal_outcomes,
             ),
             warnings=warnings + [f"No providers found within {req.radius_km} km"],
@@ -241,8 +240,7 @@ async def search_practitioners(req: SearchRequest) -> SearchResponse:
         candidates=candidates,
         goal_outcomes=req.goal_outcomes,
         main_issue=req.main_issue,
-        diagnoses=req.diagnoses,
-        care_style=req.care_style,
+        provider_scope=req.provider_scope,
         preferences=req.preferences,
         avoidances=req.avoidances,
         visit_mode=req.visit_mode,
@@ -270,7 +268,7 @@ async def search_practitioners(req: SearchRequest) -> SearchResponse:
             lng=lng,
             radius_km=req.radius_km,
             result_count=len(results),
-            care_style=req.care_style,
+            provider_scope=req.provider_scope,
             goal_outcomes=req.goal_outcomes,
         ),
         warnings=warnings,
