@@ -49,7 +49,7 @@ Paste your live URL from the deploy step above:
 
 | Field | Value |
 |---|---|
-| **Base URL** | `https://wellmate-practitioner-finder-XXXXX-uc.a.run.app` *(replace with your real URL)* |
+| **Base URL** | `https://wellmate1-1.onrender.com` |
 | **Endpoint path** | `/search_practitioners` |
 | **Method** | `POST` |
 | **Auth** | **None** — endpoint is public (`--allow-unauthenticated`). No API key, no bearer token, no header auth. |
@@ -122,44 +122,151 @@ Source of truth: `app/schema.py:22-77`.
 }
 ```
 
-### Sample response
-
-*Paste the real JSON returned from your first live curl here. See the "get a sample"
-instructions at the bottom of this file.*
+### Sample response (live, from 2026-04-17)
 
 ```json
 {
   "results": [
     {
-      "provider_id": "ChIJ...",
-      "name": "Example Physical Therapy",
+      "provider_id": "ChIJg2rrF9d4bIcRFkX5YjZoCzo",
+      "name": "Atlas Physical Therapy",
       "provider_category": "physical_therapy",
       "is_physician": false,
-      "npi_verified": true,
-      "credentials": ["DPT"],
-      "specialties": ["Physical Therapist"],
-      "address": "1234 Main St, Denver, CO 80202, USA",
-      "distance_km": 0.8,
-      "rating": 4.9,
-      "review_count": 142,
+      "npi_verified": false,
+      "credentials": [],
+      "specialties": [],
+      "address": "700 17th St #675, Denver, CO 80202, USA",
+      "distance_km": 1.2,
+      "rating": 5,
+      "review_count": 169,
       "visit_modes": ["in_person"],
       "contact": {
-        "phone": "(303) 555-0100",
-        "website": "https://example.com"
+        "phone": null,
+        "website": null
       },
-      "score": 87,
+      "score": 85,
       "fit_reasons": [
-        "Matches your goal: walking without pain",
-        "Non-pharmacologic approach",
-        "High patient rating (4.9/5)"
+        "Matches goal: walking without pain",
+        "Provides medical/clinical care",
+        "Aligns with preference: non-pharmacologic",
+        "Well-reviewed: 5 stars (169 reviews)",
+        "Close to your location (1.2 km)"
       ],
-      "data_sources": ["google_places", "npi_registry"]
+      "data_sources": ["google_places"]
+    },
+    {
+      "provider_id": "ChIJfXkDK2OHa4cR3NrnOgIEs7U",
+      "name": "Revive Bodywork | Denver's Premier Massage Studio",
+      "provider_category": "massage",
+      "is_physician": false,
+      "npi_verified": false,
+      "credentials": [],
+      "specialties": [],
+      "address": "2525 15th St, Denver, CO 80211, USA",
+      "distance_km": 1,
+      "rating": 4.9,
+      "review_count": 307,
+      "visit_modes": ["in_person"],
+      "contact": {
+        "phone": null,
+        "website": null
+      },
+      "score": 85,
+      "fit_reasons": [
+        "Matches goal: walking without pain",
+        "Offers massage services",
+        "Aligns with preference: non-pharmacologic",
+        "Well-reviewed: 4.9 stars (307 reviews)",
+        "Close to your location (1.0 km)"
+      ],
+      "data_sources": ["google_places"]
+    },
+    {
+      "provider_id": "ChIJHz29CpF4bIcRIGugsaBzCzM",
+      "name": "Symmetry 360 Massage Highlands",
+      "provider_category": "massage",
+      "is_physician": false,
+      "npi_verified": false,
+      "credentials": [],
+      "specialties": [],
+      "address": "2416 W 32nd Ave, Denver, CO 80211, USA",
+      "distance_km": 1.6,
+      "rating": 4.9,
+      "review_count": 1193,
+      "visit_modes": ["in_person"],
+      "contact": {
+        "phone": null,
+        "website": null
+      },
+      "score": 85,
+      "fit_reasons": [
+        "Matches goal: walking without pain",
+        "Offers massage services",
+        "Aligns with preference: non-pharmacologic",
+        "Well-reviewed: 4.9 stars (1193 reviews)",
+        "Close to your location (1.6 km)"
+      ],
+      "data_sources": ["google_places"]
+    },
+    {
+      "provider_id": "ChIJ1QuOF_l5bIcRVhTm91cqlXI",
+      "name": "Zen'd Out Couples Massage Spa - Denver",
+      "provider_category": "massage",
+      "is_physician": false,
+      "npi_verified": false,
+      "credentials": [],
+      "specialties": [],
+      "address": "1143 Auraria Pkwy, Denver, CO 80204, USA",
+      "distance_km": 0.7,
+      "rating": 4.9,
+      "review_count": 1279,
+      "visit_modes": ["in_person"],
+      "contact": {
+        "phone": null,
+        "website": null
+      },
+      "score": 85,
+      "fit_reasons": [
+        "Matches goal: walking without pain",
+        "Offers massage services",
+        "Aligns with preference: non-pharmacologic",
+        "Well-reviewed: 4.9 stars (1279 reviews)",
+        "Close to your location (0.7 km)"
+      ],
+      "data_sources": ["google_places"]
+    },
+    {
+      "provider_id": "ChIJNbehszZ5bIcRKjg9IQHwJJs",
+      "name": "N2 Physical Therapy",
+      "provider_category": "physical_therapy",
+      "is_physician": false,
+      "npi_verified": false,
+      "credentials": [],
+      "specialties": [],
+      "address": "1888 Sherman St Suite 202, Denver, CO 80203, USA",
+      "distance_km": 1.6,
+      "rating": 4.9,
+      "review_count": 388,
+      "visit_modes": ["in_person"],
+      "contact": {
+        "phone": null,
+        "website": null
+      },
+      "score": 85,
+      "fit_reasons": [
+        "Matches goal: walking without pain",
+        "Provides medical/clinical care",
+        "Aligns with preference: non-pharmacologic",
+        "Well-reviewed: 4.9 stars (388 reviews)",
+        "Close to your location (1.6 km)"
+      ],
+      "data_sources": ["google_places"]
     }
   ],
   "meta": {
-    "location_resolved": "80202, Denver, CO, USA",
-    "lat": 39.7541,
-    "lng": -105.0002,
+    "location_resolved": "Denver, CO 80202, USA",
+    "lat": 39.7541032,
+    "lng": -105.0002242,
     "radius_km": 16,
     "result_count": 5,
     "care_style": "mixed",
@@ -259,13 +366,10 @@ and body are all the same as above.
 
 ---
 
-## 6. Get a real sample response
-
-After you deploy, run this curl in Cloud Shell or any terminal and paste the
-response into section 4 above:
+## 6. Test the live endpoint
 
 ```bash
-curl -X POST https://<your-url>/search_practitioners \
+curl -X POST https://wellmate1-1.onrender.com/search_practitioners \
   -H "Content-Type: application/json" \
   -d '{
     "location_text": "80202",

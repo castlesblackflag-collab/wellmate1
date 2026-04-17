@@ -9,8 +9,8 @@ info:
   version: 0.1.0
 
 servers:
-  - url: https://wellmate-practitioner-finder-XXXXX.a.run.app
-    description: Cloud Run production (replace XXXXX with actual project hash)
+  - url: https://wellmate1-1.onrender.com
+    description: Render production
 
 paths:
   /search_practitioners:
