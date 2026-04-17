@@ -5,20 +5,41 @@ Everything you need to call the Wellmate Practitioner Finder API from a no-code 
 
 ---
 
-## 1. Deploy the API (one time)
+## 1. Deploy the API (one time, browser-only)
 
-The API lives at `app/` in this repo and needs to be deployed to Cloud Run before
-you can call it. See `app/deploy.sh` for a one-command deploy, or the manual steps:
+The API lives at `app/` in this repo. Deploy it to **Render** to get a public URL
+that your Lovable frontend can call. The entire flow is in your browser — no
+terminal, no CLI install.
 
-```bash
-# In Google Cloud Shell (https://shell.cloud.google.com):
-git clone https://github.com/castlesblackflag-collab/wellmate1.git
-cd wellmate1
-git checkout claude/practitioner-finder-poc-UZg3a
-bash app/deploy.sh
-# When prompted, paste your Google Places API key.
-# After ~3 min, it prints your live URL. Paste it into section 2 below.
-```
+1. Sign up at https://render.com (free; sign in with GitHub)
+2. Click **New +** → **Web Service**
+3. Click **Connect a repository** → authorize Render on the
+   `castlesblackflag-collab/wellmate1` repo
+4. Fill in the form:
+
+   | Field | Value |
+   |---|---|
+   | Name | `wellmate-practitioner-finder` *(becomes part of your URL)* |
+   | Branch | `claude/practitioner-finder-poc-UZg3a` |
+   | Root Directory | *(leave blank)* |
+   | Runtime | **Docker** *(Render auto-detects the Dockerfile)* |
+   | Region | Oregon *(or closest to you)* |
+   | Instance Type | **Free** *(or Starter $7/mo for always-on)* |
+
+5. Expand **Advanced** → **Environment Variables** → add:
+   - Key: `GOOGLE_PLACES_API_KEY`
+   - Value: *(your Google Places API key)*
+6. Click **Create Web Service**. Render streams the build log (~3-5 min).
+7. When the build finishes, your URL appears at the top of the page, e.g.
+   `https://wellmate-practitioner-finder.onrender.com`
+8. Paste that URL into section 2 below.
+
+**Free-tier caveat:** Render's free plan spins down after 15 minutes of
+inactivity. The first request after a cold start takes ~30-60s; follow-up
+requests are instant. Upgrade to Starter ($7/mo) for always-on.
+
+**Alternative — Google Cloud Run:** If you prefer Cloud Run, use `bash app/deploy.sh`
+in Google Cloud Shell. Requires a Google Cloud project with billing enabled.
 
 ---
 
