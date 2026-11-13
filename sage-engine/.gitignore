@@ -1,0 +1,25 @@
+# Secrets: never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*service-account*.json
+*credentials*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Local data (raw corpus files stay out of git; scripts and notes go in)
+data/raw/
+data/working/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
