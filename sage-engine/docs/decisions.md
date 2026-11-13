@@ -43,6 +43,26 @@ Any error a user sees carries an ID we can find in the logs immediately.
 ### D10. The chat endpoint stays off until the crisis screen exists
 There's no placeholder crisis screen that could be wired in by accident.
 
+### D11. Server-Sent Events for streaming
+Simple, works through Cloud Run and browsers without extra libraries, and the app can show
+Sage's reply as it's written.
+
+### D12. Missing memory degrades a turn, it doesn't stop it
+If the profile or summaries can't load, Sage still answers (less personally) and the failure
+is logged as an error. A model or database failure while answering does stop the turn, with
+a clear error event.
+
+### D13. Summaries are written in the background, not at the end of each message
+Users rarely say goodbye. A scheduled job summarizes conversations that went quiet or were
+closed, tracked by `summarized_at` so nothing is summarized twice.
+
+### D14. Costs are logged only from prices we set
+`MODEL_PRICES` holds per-model prices from the Vertex AI pricing page. Unpriced models are
+logged with a blank cost rather than an estimate.
+
+### D15. The app reads user data from the engine, never from the sage_ tables directly
+Keeps one place that enforces "your data only" and lets the tables stay service-role only.
+
 ---
 
 ## Open

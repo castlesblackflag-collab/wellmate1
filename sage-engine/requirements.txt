@@ -5,6 +5,5 @@ pydantic>=2.8,<3
 pydantic-settings>=2.4,<3
 firebase-admin>=6.5,<8
 supabase>=2.7,<3
-# Added when the adapters are built (WS2):
-#   anthropic[vertex]   for Claude on Vertex AI
-#   google-genai        for Gemini on Vertex AI
+anthropic[vertex]>=0.70,<3  # Claude on Vertex AI
+google-genai>=1.30,<4  # Gemini and embeddings on Vertex AI

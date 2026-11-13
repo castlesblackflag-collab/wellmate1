@@ -13,3 +13,5 @@ data/
 docs/
 supabase/
 *.md
+# ...except the persona, which the engine reads at runtime
+!persona/sage.md

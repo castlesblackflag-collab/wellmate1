@@ -23,7 +23,8 @@ ticks it.
 
 `ENVIRONMENT`, `SUPABASE_URL`, `GCP_PROJECT_ID`, `MODEL_REGION`, `CHAT_PROVIDER`,
 `CHAT_MODEL`, `BACKGROUND_PROVIDER`, `BACKGROUND_MODEL`, `FIREBASE_PROJECT_ID`,
-`ALLOWED_ORIGIN_REGEX`
+`ALLOWED_ORIGIN_REGEX`, `CHAT_ENABLED`, `MODEL_PRICES`, `EMBEDDING_MODEL`,
+`EMBEDDING_DIMENSIONS`, `JOB_AUDIENCE`, `JOB_INVOKER_EMAIL`
 
 ## No key needed
 
@@ -31,6 +32,7 @@ ticks it.
 |---|---|
 | Claude and Gemini on Vertex AI | The `sage-engine` service account's Vertex AI User role |
 | Verifying user sign-in | Firebase project ID plus Google's public certificates |
+| Cloud Scheduler calling the job endpoint | Google-signed token from the `sage-scheduler` service account |
 
 ## Accounts (logins in the vault, both of us as owner/admin)
 

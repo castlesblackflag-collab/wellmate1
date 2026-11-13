@@ -31,6 +31,8 @@ class Tool(ABC):
     description: ClassVar[str]
     Input: ClassVar[type[BaseModel]]
     writes_user_data: ClassVar[bool] = False
+    # Short status the app can show while the tool runs, e.g. "Searching PubMed".
+    activity_label: ClassVar[str] = "Looking into that"
 
     @abstractmethod
     async def run(self, args: BaseModel, ctx: ToolContext) -> ToolResult: ...
@@ -47,6 +49,9 @@ class ToolRegistry:
         if tool.name in self._tools:
             raise ValueError(f"Tool {tool.name!r} is already registered")
         self._tools[tool.name] = tool
+
+    def get(self, name: str) -> "Tool | None":
+        return self._tools.get(name)
 
     def names(self) -> list[str]:
         return sorted(self._tools)

@@ -35,16 +35,44 @@ flowchart TD
 | Settings from environment | `engine/settings.py` | Built |
 | Sign-in (Firebase ID tokens) | `engine/auth.py` | Built |
 | Errors, one shape everywhere | `engine/errors.py` | Built |
-| Supabase client | `engine/db.py` | Built |
+| Routes | `engine/api.py` | Built: chat (streaming), conversations, health, jobs |
+| Wiring (which parts get used) | `engine/container.py` | Built |
+| Agent loop | `engine/agent.py` | Built and tested with a scripted model |
+| Context for each turn | `engine/context.py`, `engine/persona.py` | Built; Age Well source is a placeholder |
+| Claude and Gemini adapters | `engine/model_adapter.py` | Built and tested against the SDKs' shapes; not yet run against live Vertex AI |
+| Embeddings | `engine/embeddings.py` | Built; used once knowledge search exists |
+| Conversations + messages | `engine/conversations.py` | Built (Supabase and in-memory) |
+| Memory (profile, summaries) | `memory/` | Built (Supabase and in-memory) |
+| Turn logging and cost | `engine/turn_log.py` | Built; prices to be filled in |
+| Background summaries | `engine/jobs.py`, `engine/job_auth.py` | Built; needs Cloud Scheduler set up |
 | Database schema | `supabase/migrations/` | Built and tested on Postgres 16 + pgvector |
-| Shared message/tool/citation types | `engine/types.py` | Built |
-| Model adapter interface | `engine/model_adapter.py` | Interface + test fake built; Claude and Gemini adapters next |
-| Tool interface + registry | `tools/base.py` | Built; individual tools next |
-| Memory interface | `memory/store.py` | Interface + in-memory version built; Supabase version next |
-| Crisis screen interface | `safety/crisis.py` | Interface only, by design |
+| Tool interface + registry | `tools/base.py`, `tools/__init__.py` | Built; no tools registered yet |
+| Crisis screen | `safety/` | Interface only, by design. Chat can't run until it exists |
 | Persona | `persona/sage.md` | First draft |
-| Agent loop | `engine/` | Not started (WS2) |
 | Eval harness | `evals/` | Not started (WS6) |
+
+## What's left before Sage can talk
+
+1. **Crisis screen** (WS5): implement `CrisisScreen`, register it in `safety/__init__.py`.
+2. **Tools** (WS3, WS4): write each one, register it in `tools/__init__.py`.
+3. **Age Well source** (WS4): implement `AgeWellSource` and use it in `engine/container.py`.
+4. **Persona** tuning, guided by evals.
+5. Set `CHAT_ENABLED=true`.
+
+Everything between those pieces (streaming, saving, memory, logging, summaries) already works.
+
+## Switching chat on is deliberately two steps
+
+`CHAT_ENABLED=true` alone isn't enough. `get_sage()` also refuses to build Sage while no
+crisis screen is registered, so the endpoint answers 501 until both are true.
+
+## Background job
+
+Cloud Scheduler calls `POST /internal/jobs/close-idle` every 15 minutes or so, signed with a
+Google ID token. Conversations that went quiet (30 minutes by default) or that the user
+closed get a short summary from the background model, which Sage reads at the start of the
+next conversation. A conversation is never summarized twice (`summarized_at`), and one
+failure doesn't stop the rest of the batch.
 
 ## The three hard rails
 

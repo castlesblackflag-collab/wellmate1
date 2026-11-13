@@ -19,6 +19,10 @@ class LiteratureSearch(Tool):
 The description matters more than it looks. It's how Sage decides when to reach for the
 tool, so write it the way you'd explain it to a new teammate.
 
+Once it's written, add it to `build_registry()` in `tools/__init__.py`, and Sage can use it
+on the next deploy. `activity_label` is the short status the app shows while it runs
+("Searching PubMed").
+
 A few things every tool should do:
 
 - Scope every read and write to `ctx.user_id`.

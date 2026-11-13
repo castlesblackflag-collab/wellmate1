@@ -41,11 +41,25 @@ Content type `text/event-stream`. Each event is one line of `event:` and one of 
 | `activity` | `{"label": "Searching PubMed"}` | Optional status while a tool runs. Shown briefly, not stored. |
 | `citations` | `{"items": [{"title": "...", "url": "...", "source_type": "pubmed", "identifier": "PMID:..."}]}` | Sources behind the reply. |
 | `safety` | `{"level": "crisis", "resources": [...]}` | Sent when the crisis screen fires, before any text. |
-| `done` | `{"message_id": "..."}` | The reply is complete. |
+| `done` | `{"request_id": "..."}` | The reply is complete. |
 | `error` | Standard error body (below) | Something failed mid-reply. Show the message, keep what already arrived. |
 
-Today the endpoint answers **501** with the standard error body after checking sign-in and
-the request format, so the app can be wired up and tested against it now.
+The response is built and tested. Until Sage is switched on (`CHAT_ENABLED` plus a
+registered crisis screen), the endpoint answers **501** with the standard error body after
+checking sign-in, so the app can be wired up against it now.
+
+A `conversation_id` that doesn't exist, or belongs to someone else, gets a plain **404**
+before any streaming starts.
+
+## Conversations
+
+| Call | Returns |
+|---|---|
+| `GET /v1/conversations` | `{"conversations": [{"id", "title", "status", "created_at", "updated_at"}]}`, newest first, up to 20 |
+| `GET /v1/conversations/{id}` | `{"conversation": {...}, "messages": [{"role": "user" or "assistant", "text"}]}` |
+| `POST /v1/conversations/{id}/close` | `{"closed": true}`. Call when the user ends a chat; the summary is written by the next job run. |
+
+All three need sign-in and only ever show the signed-in user's own conversations.
 
 ## Errors
 
@@ -73,6 +87,11 @@ response header and the server logs, so including it in a bug report makes it ea
 | 501 | `not_implemented` | That part isn't built yet |
 | 502 | `upstream_error` | The model, database or a search service failed |
 | 503 | `not_configured` | A required setting or key is missing |
+
+## Background jobs (not for the app)
+
+`POST /internal/jobs/close-idle` is called by Cloud Scheduler with a Google-signed token from
+one specific service account. Anything else gets 401.
 
 ## Health endpoints
 
