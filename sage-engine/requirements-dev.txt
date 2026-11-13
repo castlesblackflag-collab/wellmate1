@@ -1,0 +1,5 @@
+# For running tests and checks locally and in CI. Not installed on Cloud Run.
+-r requirements.txt
+pytest>=8
+httpx>=0.27
+ruff>=0.6

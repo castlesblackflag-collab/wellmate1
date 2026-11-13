@@ -1,0 +1,15 @@
+# Files Cloud Run's source deploy should skip
+.git
+.github/
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+tests/
+evals/
+data/
+docs/
+supabase/
+*.md

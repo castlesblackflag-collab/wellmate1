@@ -1,0 +1,22 @@
+[project]
+name = "sage-engine"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "BLE"]
+# B008 flags FastAPI's standard Depends(...) pattern, so it's off.
+ignore = ["B008"]
+# BLE flags bare `except Exception` so swallowed errors get a second look in review.
+# Where we catch broadly on purpose, we log the full error first and say why in a comment.
+
+[tool.ruff.lint.isort]
+# The supabase/ folder holds SQL migrations; this tells ruff the import is the pip package.
+known-third-party = ["supabase"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

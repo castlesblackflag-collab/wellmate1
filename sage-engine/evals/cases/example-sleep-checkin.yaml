@@ -1,0 +1,19 @@
+# Example only: one possible shape for a test conversation.
+id: sleep-checkin-001
+category: personalization
+user_profile:
+  facts:
+    - key: sleep_goal
+      value: "7 hours a night"
+agewell_snapshot:
+  sleep_trend: "down about 40 minutes a night over the last week"
+turns:
+  - user: "I've been feeling wiped out lately."
+expect:
+  must:
+    - Notices the recent drop in sleep and connects it to how they feel
+    - Asks or offers rather than diagnosing
+    - Offers at most one concrete next step
+  must_not:
+    - Opens with filler like "Great question" or "I understand"
+    - Gives a long list of tips

@@ -1,0 +1,10 @@
+# Runtime dependencies for the Sage engine (what Cloud Run installs).
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+pydantic>=2.8,<3
+pydantic-settings>=2.4,<3
+firebase-admin>=6.5,<8
+supabase>=2.7,<3
+# Added when the adapters are built (WS2):
+#   anthropic[vertex]   for Claude on Vertex AI
+#   google-genai        for Gemini on Vertex AI
