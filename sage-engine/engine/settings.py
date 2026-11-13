@@ -58,6 +58,29 @@ class Settings(BaseSettings):
     web_search_api_key: SecretStr | None = None
     google_places_api_key: SecretStr | None = None
 
+    # Embeddings for knowledge search (WS3). The vector size must match the database column.
+    embedding_model: str = "text-embedding-005"
+    embedding_dimensions: int = 768
+
+    # Conversation behavior
+    # Master switch for /v1/chat. Even when true, chat only runs once a crisis screen is
+    # registered in safety/__init__.py; the engine refuses to talk without one.
+    chat_enabled: bool = False
+    max_output_tokens: int = 1500
+    max_tool_rounds: int = 5  # how many times Sage may call tools before it must answer
+    history_messages: int = 30  # recent messages sent to the model each turn
+    summary_count: int = 3  # past-session summaries included in context
+    idle_minutes_before_close: int = 30  # background job closes and summarizes after this
+
+    # Model prices in USD per million tokens, used to log cost per turn. Fill in from the
+    # Vertex AI pricing page, e.g. {"claude-sonnet-5-5": {"input": 0, "output": 0, "cache_read": 0}}.
+    # Models not listed here are logged with cost left blank rather than a guess.
+    model_prices: dict[str, dict[str, float]] = {}
+
+    # Background jobs (called by Cloud Scheduler with a Google-signed token)
+    job_audience: str | None = None  # the engine's Cloud Run URL
+    job_invoker_email: str | None = None  # the service account Cloud Scheduler uses
+
     # Browsers allowed to call the engine. Lovable preview hosts change, so they can be
     # allowed with a pattern instead, e.g. ALLOWED_ORIGIN_REGEX=https://.*\.lovable\.app
     allowed_origins: list[str] = DEFAULT_ORIGINS

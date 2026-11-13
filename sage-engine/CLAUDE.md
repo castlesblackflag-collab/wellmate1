@@ -107,6 +107,10 @@ sign-in on your own machine; the app refuses to start with it in production.
 
 ## Status
 
-Scaffolding only. `/health` and `/ready` work, sign-in is verified, and `/v1/chat` deliberately
-answers 501 until the agent loop and crisis screen exist. See `docs/architecture.md` for what's
-built and what's next.
+The full architecture is built and tested: streaming chat, the agent loop, Claude and Gemini
+adapters, conversations, memory, turn logging, background summaries, embeddings. What's
+missing is what makes Sage *Sage*: the crisis screen, the tools, the Age Well source and a
+tuned persona. `/v1/chat` stays off (501) until `CHAT_ENABLED=true` **and** a crisis screen
+is registered. `docs/architecture.md` has the list of what's left.
+
+Not yet verified: calls to live Vertex AI and live Supabase (all tests use fakes).

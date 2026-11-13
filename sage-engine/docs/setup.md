@@ -27,8 +27,9 @@ exact names from the inventory so they match the code.
 ## 2. Supabase
 
 1. Database > Extensions > enable `vector` (choose the `extensions` schema if asked).
-2. SQL Editor > New query > paste `supabase/migrations/20261113120000_sage_engine_core.sql` > Run.
-3. Table Editor should now show seven `sage_` tables.
+2. SQL Editor > New query > paste each file from `supabase/migrations/`, oldest first > Run.
+3. Table Editor should now show seven `sage_` tables, and `sage_conversations` has a
+   `summarized_at` column.
 4. Project Settings > API: the Project URL goes in `SUPABASE_URL`, the `service_role` key
    goes into Secret Manager as `SUPABASE_SERVICE_KEY`.
 
@@ -47,7 +48,26 @@ Cloud Run > Deploy container > Service > "Continuously deploy from a repository"
 Once it's up, opening `<service URL>/health` should show `"status": "ok"`, and `/ready` shows
 what's still missing.
 
-## 4. Running on your own machine
+## 4. Background job (Cloud Scheduler)
+
+1. IAM & Admin > Service Accounts > Create `sage-scheduler` (no roles needed on the project).
+2. Cloud Run > `sage-engine` > Permissions > grant `sage-scheduler` the **Cloud Run Invoker** role.
+3. Cloud Scheduler > Create job:
+   - Frequency `*/15 * * * *`, any time zone
+   - Target: HTTP, POST, URL `<service URL>/internal/jobs/close-idle`
+   - Auth header: **Add OIDC token**, service account `sage-scheduler`, audience = the service URL
+4. On the Cloud Run service, set `JOB_AUDIENCE` to the service URL and `JOB_INVOKER_EMAIL` to
+   the `sage-scheduler` account's email.
+5. "Force run" the job once; its log should show `close_idle_conversations finished`.
+
+## 5. Model prices
+
+Fill `MODEL_PRICES` on the Cloud Run service with per-million-token prices from the Vertex AI
+pricing page, for example
+`{"claude-sonnet-5-5": {"input": 0, "output": 0, "cache_read": 0}}` with the real numbers.
+Use the exact model IDs set in `CHAT_MODEL` and `BACKGROUND_MODEL`.
+
+## 6. Running on your own machine
 
 The easiest route is to ask Claude Code: "set up the sage-engine folder locally and run the
 tests". Behind the scenes that's:
@@ -59,7 +79,7 @@ tests". Behind the scenes that's:
 5. For model calls later: `gcloud auth application-default login` once, so your machine can
    reach Vertex AI with your own Google account.
 
-## 5. GitHub
+## 7. GitHub
 
 - Branch protection on the default branch: require a pull request and the "Sage engine CI" check to pass.
 - Labels `WS1` to `WS9`, plus `bug` and `blocked`.

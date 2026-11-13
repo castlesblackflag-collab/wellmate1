@@ -38,6 +38,12 @@ class AuthError(SageError):
     user_message = "Please sign in again to keep chatting with Sage."
 
 
+class NotFoundError(SageError):
+    status_code = 404
+    code = "not_found"
+    user_message = "We couldn't find that conversation."
+
+
 class NotConfiguredError(SageError):
     status_code = 503
     code = "not_configured"
@@ -69,7 +75,8 @@ def unexpected_error_response() -> JSONResponse:
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(SageError)
     async def _sage_error(request: Request, exc: SageError):
-        level = logging.WARNING if exc.status_code < 500 else logging.ERROR
+        # 4xx and "not built yet" are expected; real server failures are errors.
+        level = logging.ERROR if exc.status_code >= 500 and exc.status_code != 501 else logging.WARNING
         log.log(
             level,
             "%s: %s",

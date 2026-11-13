@@ -35,7 +35,11 @@ def test_chat_requires_sign_in(client_factory):
 
 
 def test_chat_rejects_malformed_body_with_standard_shape(client_factory):
-    r = client_factory(auth_disabled=True).post("/v1/chat", json={"message": ""})
+    from engine.container import get_sage
+
+    client = client_factory(auth_disabled=True)
+    client.app.dependency_overrides[get_sage] = lambda: None  # as if chat were switched on
+    r = client.post("/v1/chat", json={"message": ""})
     assert r.status_code == 422
     assert r.json()["error"]["code"] == "invalid_request"
 

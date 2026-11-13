@@ -8,7 +8,7 @@ policies, so only the engine (service role) can reach them; the app always goes 
 
 | Table | What it holds |
 |---|---|
-| `sage_conversations` | One row per conversation: owner, status, model and engine version used |
+| `sage_conversations` | One row per conversation: owner, status, model and engine version, when it was summarized |
 | `sage_messages` | Every message in a conversation (user, assistant, tool), as model-neutral JSON |
 | `sage_user_profiles` | What Sage remembers about a person: facts and preferences |
 | `sage_session_summaries` | Short recap of each finished conversation, written by the background model |
@@ -48,8 +48,9 @@ supabase.rpc(
   also need field-level encryption is an open decision in `docs/decisions.md`.
 - **Retention.** How long conversations are kept is still to be decided (WS5).
 
-## Applying the migration
+## Applying the migrations
 
-Supabase dashboard > SQL Editor > New query > paste the migration file > Run. It's safe to
+Run each file in `supabase/migrations/` in order (oldest first): Supabase dashboard > SQL
+Editor > New query > paste > Run. Each one is safe to run again. It's safe to
 run again. If it stops with a message about pgvector being in another schema, the message
 says exactly what to change.

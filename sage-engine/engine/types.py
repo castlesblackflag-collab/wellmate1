@@ -41,6 +41,7 @@ class ChatMessage(BaseModel):
     text: str | None = None
     tool_calls: list[ToolCall] = Field(default_factory=list)
     tool_call_id: str | None = None  # set when role == "tool"
+    tool_name: str | None = None  # set when role == "tool" (Gemini needs it)
     tool_result: ToolResult | None = None
 
 
@@ -68,3 +69,14 @@ class ModelStop(BaseModel):
 
 
 ModelEvent = TextDelta | ToolUseRequested | ModelStop
+
+
+# Events the engine streams to the app (Server-Sent Events). See docs/endpoint-contract.md.
+class StreamEvent(BaseModel):
+    event: Literal["conversation", "text", "activity", "citations", "safety", "done", "error"]
+    data: dict[str, Any]
+
+    def to_sse(self) -> str:
+        import json
+
+        return f"event: {self.event}\ndata: {json.dumps(self.data, default=str)}\n\n"

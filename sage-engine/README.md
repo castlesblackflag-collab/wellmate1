@@ -2,9 +2,9 @@
 
 The engine behind Sage, The Wellmate's conversational health guide.
 
-This is the groundwork: the service skeleton, configuration, sign-in, error handling,
-logging, database schema, and the interfaces each part of Sage will plug into. The
-conversation itself isn't built yet.
+The architecture is in place: streaming chat, the agent loop, model adapters, storage,
+memory, logging and background summaries. Sage's own pieces (crisis screen, tools, Age Well
+connection, tuned persona) plug into it next.
 
 ## Start here
 
@@ -22,4 +22,6 @@ conversation itself isn't built yet.
 |---|---|
 | `GET /health` | Confirms the service is running. Used for Cloud Run health checks. |
 | `GET /ready` | Shows which pieces are configured and reachable (names only, never values). |
-| `POST /v1/chat` | Checks sign-in and the request format, then answers 501 until the engine is built. |
+| `POST /v1/chat` | Streams Sage's reply. Answers 501 until chat is switched on (see docs/architecture.md). |
+| `GET /v1/conversations` | The user's recent conversations, plus one conversation's messages and a close call. |
+| `POST /internal/jobs/close-idle` | Cloud Scheduler only: summarizes and closes quiet conversations. |
